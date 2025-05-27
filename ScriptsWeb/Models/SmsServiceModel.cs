@@ -13,8 +13,8 @@ namespace Onthesys.WebBuild
         public int service_id;
         public string name;
         public string phone;
-        public int is_enabled;
-        public bool isEnabled => is_enabled == 1;
+        public bool is_enabled;
+        public bool isEnabled => is_enabled;
         public string alarm_level;
     }
 

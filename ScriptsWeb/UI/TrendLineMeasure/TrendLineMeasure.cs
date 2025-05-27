@@ -28,7 +28,7 @@ namespace Onthesys.WebBuild
         float MaxValue => Mathf.Max(sensorLogs.Select(log => log.measured_value).Max(), sensorData.threshold_critical);
         
         //Components
-        TMP_Text lblName, lblIsFixing;
+        TMP_Text /*lblName,*/ lblIsFixing;
         List<RectTransform> dots = new();
         List<TMP_Text> lblHourList;
         List<TMP_Text> lblAmountList;
@@ -59,7 +59,7 @@ namespace Onthesys.WebBuild
 
         protected override void Awake()
         {
-            lblName = transform.Find("Title_Image").GetComponentInChildren<TMP_Text>();
+            //lblName = transform.Find("Title_Image").GetComponentInChildren<TMP_Text>();
 
             lblAmountList = transform.Find("Chart_Grid").Find("Text_Vertical").GetComponentsInChildren<TMP_Text>().ToList();
             lblHourList = transform.Find("Chart_Grid").Find("Text_Horizon").GetComponentsInChildren<TMP_Text>().ToList();
@@ -158,7 +158,7 @@ namespace Onthesys.WebBuild
             if (sensorData is null) return;
 
             //제목 설정
-            lblName.text = sensorData.sensor_name;
+            //lblName.text = sensorData.sensor_name;
             lblIsFixing?.gameObject.SetActive(sensorData.isUsing);
 
             //수직 축(값) 설정
@@ -168,9 +168,9 @@ namespace Onthesys.WebBuild
             UpdateTimeLabels();
 
             //실제 계측값들을 그래프에 적용
-            Debug.Log($"{sensorLogs.Count} != {dots.Count - dotsMargin}?");
+            //Debug.Log($"{sensorLogs.Count} != {dots.Count - dotsMargin}?");
             if (sensorLogs.Count != (dots.Count - dotsMargin)) return;
-            Debug.Log($"{sensorLogs.Count} == {dots.Count - dotsMargin}!");
+            //Debug.Log($"{sensorLogs.Count} == {dots.Count - dotsMargin}!");
 
             UpdateTrendLine();
         }

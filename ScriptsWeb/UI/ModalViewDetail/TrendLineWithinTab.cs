@@ -1,7 +1,6 @@
 ﻿
 using Assets.ScriptsWeb.UI;
 using DG.Tweening;
-using Onthesys.ExeBuild;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +18,7 @@ namespace Onthesys.WebBuild
     internal class TrendLineWithinTab : MaskableGraphic
     {
 
-        enum TabType { History, Denoise, Inference}
+        enum TabType { History, /*Denoise,*/ Inference }
         TabType type;
 
         ModelProvider modelProvider => UiManager.Instance.modelProvider;
@@ -37,7 +36,7 @@ namespace Onthesys.WebBuild
         float MaxValue => Mathf.Max(sensorLogs.Select(log => log.measured_value).Max(), sensorData.threshold_critical);
         
         //Components
-        TMP_Text lblName;
+        //TMP_Text lblName;
         List<RectTransform> dots = new();
         List<TMP_Text> lblHourList;
         List<TMP_Text> lblAmountList;
@@ -67,7 +66,7 @@ namespace Onthesys.WebBuild
 
         protected override void Awake()
         {
-            lblName = transform.Find("Title_Image").GetComponentInChildren<TMP_Text>();
+            //lblName = transform.Find("Title_Image").GetComponentInChildren<TMP_Text>();
 
             lblAmountList = transform.Find("Chart_Grid").Find("Text_Vertical").GetComponentsInChildren<TMP_Text>().ToList();
             lblHourList = transform.Find("Chart_Grid").Find("Text_Horizon").GetComponentsInChildren<TMP_Text>().ToList();
@@ -83,8 +82,8 @@ namespace Onthesys.WebBuild
             //부모가 가진 탭 View 타입을 통해 표현할 자료에 따라 탭 유형을 결정
             if (GetComponentInParent<PanelHistory>() is not null)
                 type = TabType.History;
-            else if (GetComponentInParent<PanelDenoise>() is not null)
-                type = TabType.Denoise;
+            //else if (GetComponentInParent<PanelDenoise>() is not null)
+            //    type = TabType.Denoise;
             else if (GetComponentInParent<PanelInference>() is not null)
                 type = TabType.Inference;
             else Destroy(this.gameObject);
@@ -93,7 +92,7 @@ namespace Onthesys.WebBuild
             (UiEventType response, UiEventType request) eventPair = type switch
             {
                 TabType.History => (UiEventType.ChangeTrendLineHistory, UiEventType.RequestSearchHistory),
-                TabType.Denoise => (UiEventType.ChangeTrendLineDenoised, UiEventType.RequestSearchDenoised),
+                //TabType.Denoise => (UiEventType.ChangeTrendLineDenoised, UiEventType.RequestSearchDenoised),
                 TabType.Inference => (UiEventType.ChangeTrendLineInference, UiEventType.RequestSearchInference),
                 _ => throw new NotImplementedException(),
             };
@@ -103,7 +102,6 @@ namespace Onthesys.WebBuild
             UiManager.Instance.Register(eventPair.request, OnRequestSearch);
 
             base.Start();
-            transform.parent.gameObject.SetActive(false);
         }
         #endregion
 
@@ -165,7 +163,7 @@ namespace Onthesys.WebBuild
             sensorLogs = type switch
             {
                 TabType.History => modelProvider.GetMeasureHistoryList(),
-                TabType.Denoise => modelProvider.GetMeasureDenoisedList(),
+                //TabType.Denoise => modelProvider.GetMeasureDenoisedList(),
                 TabType.Inference => modelProvider.GetMeasureInferenceList(),
                 _ => throw new NotImplementedException(),
             };
@@ -183,7 +181,7 @@ namespace Onthesys.WebBuild
             if (sensorData is null) return;
 
             //제목 설정
-            if(lblName != null) lblName.text = sensorData.sensor_name;
+            //if(lblName != null) lblName.text = sensorData.sensor_name;
 
             //수직 축(값) 설정
             UpdateAmountLabels();

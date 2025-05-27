@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PageSmsUpdate : MonoBehaviour
 {
+    ModelProvider modelProvider => UiManager.Instance.modelProvider;
+
     TMP_InputField txbName, txbPhoneNumber;
     TMP_Dropdown ddlThreshold;
     Button btnConfirm, btnCancel;
@@ -20,19 +24,30 @@ public class PageSmsUpdate : MonoBehaviour
 
     private void Start()
     {
-        UiManager.Instance.Register(UiEventType.ResponseSmsUpdate, OnResponseSmsUpdate);
-        UiManager.Instance.Register(UiEventType.RequestSmsUpdate, OnRequestSmsUpdate);
+        txbName = transform.Find("InputFieldName").GetComponent<TMP_InputField>();
+        txbPhoneNumber = transform.Find("InputFieldNumber").GetComponent<TMP_InputField>();
 
+        btnCancel = transform.Find("btnClose").GetComponent<Button>();
         btnCancel.onClick.AddListener(OnClickCancel);
+
+        btnConfirm = transform.Find("btnInput").GetComponent<Button>();
         btnConfirm.onClick.AddListener(OnClickConfirm);
+
+        UiManager.Instance.Register(UiEventType.ResponseSmsUpdate, OnResponseSmsUpdate);
+        UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
+
+
+        gameObject.SetActive(false);
     }
 
-    private void OnRequestSmsUpdate(object obj)
+    private void OnNavigateSms(object obj)
     {
-        if (obj is not (int sensorId, SmsServiceModel model)) return;
+        if (obj is not int serviceId) return;
 
-        this.data = new();
-        //TODO
+        this.data = modelProvider.GetSmsServiceById(serviceId);
+
+        txbName.SetTextWithoutNotify(data.name);
+        txbPhoneNumber.SetTextWithoutNotify(data.phone);
     }
 
     private void OnResponseSmsUpdate(object obj)
@@ -41,8 +56,14 @@ public class PageSmsUpdate : MonoBehaviour
 
         if (isSucceed)
         {
-            //성공알림 TODO
-            UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
+            if (gameObject.activeSelf == true)
+            {
+                data.name = txbName.text;
+                data.phone = txbPhoneNumber.text;
+
+                //성공알림 TODO
+                UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
+            }
         }
         else
         {
@@ -62,7 +83,7 @@ public class PageSmsUpdate : MonoBehaviour
             alarm_level = GetTypeFromDropdown().ToString(),
             name = txbName.text,
             phone = txbPhoneNumber.text,
-            is_enabled = data.isEnabled ? 1 : 0,
+            is_enabled = data.isEnabled,
             service_id = data.service_id
         }));
     }

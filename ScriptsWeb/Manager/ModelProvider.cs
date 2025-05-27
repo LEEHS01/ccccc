@@ -1,41 +1,30 @@
-﻿using NUnit.Framework;
-using Onthesys;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Onthesys.ExeBuild
+namespace Onthesys.WebBuild
 {
-    internal interface ModelProvider
+    interface ModelProvider
     {
-        public ObsData GetObs(int obsId);
-        public List<ObsData> GetObss();
-        public List<ObsData> GetObssByAreaId(int areaId);
-        public ToxinStatus GetObsStatus(int obsId);
-        public ObsData GetObsByName(string obsName);
+        public SensorModel GetSensor(int boardId, int sensorId);
+        public List<SensorModel> GetSensors();
+        public List<MeasureModel> GetMeasureRecentList();
+        public MeasureModel GetMeasureRecentBySensor(int boardId, int sensorId);
+        public List<MeasureModel> GetMeasureLogList();
+        public List<MeasureModel> GetMeasureHistoryList();
+        public List<MeasureModel> GetMeasureLogBySensor(int boardId, int sensorId);
+        public List<AlarmLogModel> GetAlarmLogList();
+        public StatusType GetStatusBySensor(int boardId, int sensorId);
+        public StatusType GetStatusBySensorAndValue(int boardId, int sensorId, float value);
 
-        public List<AreaData> GetAreas();
-        public AreaData GetArea(int areaId);
-        public ToxinStatus GetAreaStatus(int areaId);
-        public AreaData GetAreaByName(string areaName);
 
-        public ToxinData GetToxin(int boardId, int hnsId);
-        public List<ToxinData> GetToxins();
-        public List<ToxinData> GetToxinsInLog();
-        public List<ToxinData> GetToxinsSetting();
-
-        public List<LogData> GetAlarms();
-        public LogData GetAlarm(int alarmId);
-
-        public List<(int areaId, int count)> GetAlarmMonthly();
-        public List<(int areaId, AlarmCount counts)> GetAlarmYearly();
-        public List<AlarmSummaryModel> GetAlarmSummary();
-
-        public AlarmCount GetObsStatusCountByAreaId(int areaId);
-
-        public ToxinStatus GetSensorStatus(int obsId, int boardId, int hnsId);
-
+        public List<SmsServiceModel> GetSmsServices();
+        public SmsServiceModel GetSmsServiceById(int serviceId);
+        public List<CorrelationModel> GetCorrelations();
+        public List<CorrelationModel> GetCorrelationBySensor(int boardId, int sensorId);
+        public List<MeasureModel> GetMeasureInferenceList();
+        public List<MeasureModel> GetMeasureDenoisedList();
     }
 }

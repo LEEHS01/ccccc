@@ -18,7 +18,30 @@ public class PageSmsRegister : MonoBehaviour
 
     private void Start()
     {
+        txbName = transform.Find("InputFieldName").GetComponent<TMP_InputField>();
+        txbPhoneNumber = transform.Find("InputFieldNumber").GetComponent<TMP_InputField>();
+
+        btnCancel = transform.Find("btnClose").GetComponent<Button>();
+        btnCancel.onClick.AddListener(OnClickCancel);
+
+        btnConfirm = transform.Find("btnInput").GetComponent<Button>();
+        btnConfirm.onClick.AddListener(OnClickConfirm);
+
         UiManager.Instance.Register(UiEventType.ResponseSmsRegister, OnResponseSmsRegister);
+        UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
+
+        gameObject.SetActive(false);
+    }
+
+    private void OnNavigateSms(object obj)
+    {
+        if(obj is not Type type) return;
+
+        if (type == typeof(PageSmsRegister)) 
+        {
+            txbName.text = string.Empty;
+            txbPhoneNumber.text = string.Empty;
+        }
     }
 
     private void OnResponseSmsRegister(object obj)
@@ -28,6 +51,7 @@ public class PageSmsRegister : MonoBehaviour
         if (isSucceed) 
         {
             //성공알림 TODO
+
             UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
         }
         else 
@@ -43,7 +67,16 @@ public class PageSmsRegister : MonoBehaviour
     }
     void OnClickConfirm() 
     {
-        UiManager.Instance.Invoke(UiEventType.RequestSmsRegister, (txbName.name, txbPhoneNumber.name, GetTypeFromDropdown()));
+        SmsServiceModel model = new SmsServiceModel
+        {
+            name = txbName.text,
+            phone = txbPhoneNumber.text,
+            alarm_level = GetTypeFromDropdown().ToString(),
+            is_enabled = true 
+        };
+
+
+        UiManager.Instance.Invoke(UiEventType.RequestSmsRegister, model);
     }
     void OnClickCancel()
     {

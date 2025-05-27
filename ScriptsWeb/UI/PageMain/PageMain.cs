@@ -9,15 +9,19 @@ using UnityEngine.UI;
 
 public class MainPage : MonoBehaviour
 {
-    Toggle tglTimespan;
+    Button btnTimespan;
     Button btnNavigateSms;
 
     private void Start()
     {
-        tglTimespan.onValueChanged.AddListener(OnToggleTimespan);
+        btnTimespan = transform.Find("CycleChangeBtn").GetComponent<Button>();
+        btnTimespan.onClick.AddListener(OnClickTimespan);
+
+        btnNavigateSms = transform.Find("SmsManagerBtn").GetComponent<Button>();
         btnNavigateSms.onClick.AddListener(OnClickSms);
-        UiManager.Instance.Register(UiEventType.NavigateMain, OnNavigateMain);
-        UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
+
+        //UiManager.Instance.Register(UiEventType.NavigateMain, OnNavigateMain);
+        //UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
     }
 
     private void OnNavigateSms(object obj)
@@ -29,8 +33,8 @@ public class MainPage : MonoBehaviour
     {
         gameObject.SetActive(true);
     }
-
-    void OnToggleTimespan(bool isWeek) => UiManager.Instance.Invoke(UiEventType.ChangeTimespan, isWeek);
+    bool isWeek;
+    void OnClickTimespan() => UiManager.Instance.Invoke(UiEventType.ChangeTimespan, isWeek = !isWeek);
     void OnClickSms() => UiManager.Instance.Invoke(UiEventType.NavigateSms);
 
 }

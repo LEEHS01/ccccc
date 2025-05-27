@@ -11,27 +11,44 @@ using UnityEngine.UI;
 
 public class ItemSmsManage : MonoBehaviour
 {
-    Button btnItem;
-    SmsServiceModel data;
 
+
+    public bool isChecked { private set; get; }
+    public SmsServiceModel data { private set; get; }
+
+
+    Button btnItem;
     Toggle tglIsEnabled;
     TMP_Text lblName, lblPhone, lblAlarmLevel;
-    public void SetSmsService(SmsServiceModel data)
+
+    private void Start()
     {
-        //TODO
-        this.data = data;
+        lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
+        lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
+        lblAlarmLevel = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();
+        tglIsEnabled = transform.Find("Toggle").GetComponent<Toggle>();
+
+        btnItem = GetComponent<Button>();
         btnItem.onClick.AddListener(OnClick);
+    }
+
+
+    public void SetData(SmsServiceModel data)
+    {
+        if (lblName == null) Start();
+
+        this.data = data;
 
         lblName.text = data.name;
         lblPhone.text = data.phone;
         lblAlarmLevel.text = data.alarm_level;
-        tglIsEnabled.isOn = data.isEnabled;
+        tglIsEnabled.SetIsOnWithoutNotify(data.isEnabled);
         tglIsEnabled.onValueChanged.AddListener(OnToggleEnabled);
     }
 
     private void OnToggleEnabled(bool isEnabled)
     {
-        data.is_enabled = isEnabled? 1 : 0;
+        data.is_enabled = isEnabled;
         UiManager.Instance.Invoke(UiEventType.RequestSmsUpdate, (data.service_id, data));
     }
 

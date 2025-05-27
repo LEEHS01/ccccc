@@ -17,22 +17,29 @@ public class PageSmsAuth : MonoBehaviour
 
     private void Start()
     {
+        txbPassword = transform.Find("login").Find("InputField").GetComponent<TMP_InputField>();   
+        btnConfirm = transform.Find("login").Find("btnLogin").GetComponent<Button>();
+
         UiManager.Instance.Register(UiEventType.ResponseVerification, OnVerificationResponse);
         btnConfirm.onClick.AddListener(OnClick);
     }
 
     private void OnVerificationResponse(object obj)
     {
+        Debug.Log("OnVerificationResponse start");
         if (obj is not (bool isVerified, string verificationKey)) return;
+        Debug.Log("OnVerificationResponse type good");
 
-        if(isVerified)
+        if (isVerified)
             UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
         else { }
 
+        Debug.Log("OnVerificationResponse is " + isVerified.ToString());
     }
 
-    public void OnClick() 
+    public void OnClick()
     {
+        Debug.Log("OnClick RequestVerification");
         UiManager.Instance.Invoke(UiEventType.RequestVerification, txbPassword.text);
     }
 }
