@@ -1,0 +1,24 @@
+{
+  "name": "onthesys-server-web",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "install": "^0.13.0",
+    "mssql": "^11.0.1",
+    "npm": "^11.3.0",
+    "perlin-noise": "^0.0.1",
+    "seedrandom": "^3.0.5",
+    "simplex-noise": "^4.0.3"
+  },
+  "description": ""
+}
