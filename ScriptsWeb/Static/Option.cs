@@ -11,6 +11,6 @@ namespace Onthesys.WebBuild
         public static int TREND_TIME_INTERVAL = 1;
         public static int TREND_TIME_RANGE = 1440;
 
-        public static string URL = "http://192.168.0.27:8080/query/";
+        public static string URL = "http://192.168.0.27:8080";
     }
 }

@@ -179,25 +179,27 @@ namespace Onthesys.WebBuild
         private void OnVerificationRequest(object obj) 
         {
             if (obj is not string password) return;
-            //dbManager.DoVerification(password, result =>
-            //{
-            //  if(result.isSucceed == true)
-            //  {
-            //      verificatedPassword = password;
-            //      verificatedCode = result.verificationCode;
-            //  }
-            //  uiManager.Invoke(UiEventType.ResponseVerification, result.isSucceed);
-            //});
-            dbManager.GetSmsServiceList(datas =>
+            dbManager.GetCertification(password, result =>
             {
-                
-                smsServices.Clear();
-                smsServices.AddRange(datas);
+                if (result.is_succeed == true)
+                {
+                    verificatedPassword = password;
+                    verificatedCode = result.auth_code;
 
-                uiManager.Invoke(UiEventType.ResponseVerification, (true, "ThisIsTestVerificationCode"));
+                    dbManager.GetSmsServiceList(datas =>
+                    {
+                        smsServices.Clear();
+                        smsServices.AddRange(datas);
+                        Debug.Log($"SMS 서비스 개수: {(result.is_succeed, result.auth_code)} / ({result.is_succeed}, {result.auth_code})");
+                        uiManager.Invoke(UiEventType.ResponseVerification, (result.is_succeed, result.auth_code));
+                    });
+                }
+                else 
+                {
+                    Debug.LogError($"인증 실패: {result.message}");
+                    uiManager.Invoke(UiEventType.ResponseVerification, (result.is_succeed, result.auth_code));
+                }
             });
-
-
             //디버그용 성공 알람 
             //uiManager.Invoke(UiEventType.ResponseVerification, (true, "ThisIsTestVerificationCode"));
         }
@@ -218,11 +220,19 @@ namespace Onthesys.WebBuild
         private void OnRequestSmsUpdate(object obj)
         {
             if(obj is not (int serviceId, SmsServiceModel updatedModel)) return;
+            dbManager.GetValidation(verificatedCode, result =>
+            {
+                if (result.is_succeed == false) 
+                {
+                    Debug.LogError($"인증 실패: {result.message}");
+                    return;
+                }
 
-            dbManager.SetSmsServiceUpdate(serviceId, updatedModel, () => { 
-                UiManager.Instance.Invoke(UiEventType.ResponseSmsUpdate, (true, "성공적으로 수정되었습니다."));
+                dbManager.SetSmsServiceUpdate(serviceId, updatedModel, () =>
+                {
+                    UiManager.Instance.Invoke(UiEventType.ResponseSmsUpdate, (result.is_succeed, result.auth_code));
+                });
             });
-
         }     
         private void OnRequestSmsRegister(object obj)
         {

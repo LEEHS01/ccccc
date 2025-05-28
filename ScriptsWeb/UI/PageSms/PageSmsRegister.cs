@@ -71,7 +71,7 @@ public class PageSmsRegister : MonoBehaviour
         {
             name = txbName.text,
             phone = txbPhoneNumber.text,
-            alarm_level = GetTypeFromDropdown().ToString(),
+            alarm_level = GetTypeFromDropdown().ToDbString(),
             is_enabled = true 
         };
 

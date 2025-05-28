@@ -20,6 +20,15 @@ namespace Onthesys.WebBuild
             "Critical" => StatusType.CRITICAL,
             _ => throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다."),
         };
+        public static string ToDbString(this StatusType status) => status switch
+        {
+            StatusType.ERROR => "Error",
+            StatusType.NORMAL => "Normal",
+            StatusType.SERIOUS => "Serious",
+            StatusType.WARNING => "Warning",
+            StatusType.CRITICAL => "Critical",
+            _ => throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다."),
+        };
     }
 
 

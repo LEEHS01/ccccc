@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework.Internal;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,7 +29,7 @@ namespace Onthesys.WebBuild
 
         }
 
-        #region [공개된 인터페이스]
+        #region [공개된 쿼리 인터페이스]
         /// <summary>
         /// 센서 제원을 가져오는 함수입니다.
         /// </summary>
@@ -203,7 +204,6 @@ namespace Onthesys.WebBuild
             });
 
         }
-
         IEnumerator GetCorrelationsFunc(Action<List<CorrelationModel>> callback)
         {
             var query = @$"exec GET_CORRELATIONS;";
@@ -215,9 +215,6 @@ namespace Onthesys.WebBuild
                 callback(wrapper.items);
             });
         }
-
-
-
         IEnumerator GetMeasureInferenceTimeRangeFunc(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
         {
 
@@ -324,6 +321,41 @@ namespace Onthesys.WebBuild
 
         #endregion
 
+        #region [공개된 API 인터페이스]
+
+        public void GetCertification(string password, Action<AuthTokenModel> callback)
+        => StartCoroutine(GetCertificationFunc(password, callback));
+
+
+        public void GetValidation(string authCode, Action<AuthTokenModel> callback)
+        => StartCoroutine(GetValidationFunc(authCode, callback));
+
+
+
+        #endregion
+        #region [API 요청 및 처리문]
+
+        IEnumerator GetCertificationFunc(string password, Action<AuthTokenModel> callback)
+        {
+            yield return ResponseAPI("/auth/certification", password, result =>
+            {
+                Debug.LogWarning("GetCertificationFunc : " + result);
+                var item = JsonUtility.FromJson<AuthTokenModel>(result);
+                callback(item);
+            });
+        }
+        IEnumerator GetValidationFunc(string authCode, Action<AuthTokenModel> callback)
+        {
+            yield return ResponseAPI("/auth/validation", authCode, result =>
+            {
+                Debug.LogWarning("validation : " + result);
+                var item = JsonUtility.FromJson<AuthTokenModel>(result);
+                callback(item);
+            });
+        }
+
+        #endregion
+
 
         /// <summary>
         /// DB서버를 연결해주는 API서버에 쿼리문을 전달한 뒤, 응답을 전달받는 함수입니다.
@@ -345,7 +377,7 @@ namespace Onthesys.WebBuild
             byte[] jsonToSend = new UTF8Encoding().GetBytes(json);
 
             // UnityWebRequest를 POST 메서드로 생성
-            UnityWebRequest request = new UnityWebRequest(Option.URL, "POST");
+            UnityWebRequest request = new UnityWebRequest(Option.URL + "/query", "POST");
             request.uploadHandler = new UploadHandlerRaw(jsonToSend);
             request.downloadHandler = new DownloadHandlerBuffer();
             request.SetRequestHeader("Content-Type", "application/json");
@@ -367,9 +399,36 @@ namespace Onthesys.WebBuild
             }
         }
 
-        IEnumerator ResponseAPI(string type, string route, string msg, System.Action<string> callback) 
+        IEnumerator ResponseAPI(string route, string msg, System.Action<string> callback)
         {
-            throw new NotImplementedException();
+            var data = new SinglePayload
+            {
+                item = msg
+            };
+            var json = JsonUtility.ToJson(data);
+            // JSON 데이터를 바이트 배열로 변환
+            byte[] jsonToSend = new UTF8Encoding().GetBytes(json);
+
+            // UnityWebRequest를 POST 메서드로 생성
+            UnityWebRequest request = new UnityWebRequest(Option.URL + route, "POST");
+            request.uploadHandler = new UploadHandlerRaw(jsonToSend);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // 요청 보내기
+            yield return request.SendWebRequest();
+
+            // 응답 처리
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                // 요청 성공 시 응답 본문 출력
+                callback(request.downloadHandler.text);
+            }
+            else
+            {
+                // 오류 처리
+                callback($"Error: {request.error}");
+            }
         }
 
 
@@ -383,6 +442,10 @@ namespace Onthesys.WebBuild
         {
             public string SQLType;
             public string SQLquery;
+        }
+        public class SinglePayload 
+        {
+            public string item;
         }
     }
 }
