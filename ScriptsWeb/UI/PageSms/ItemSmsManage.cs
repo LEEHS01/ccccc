@@ -26,7 +26,7 @@ public class ItemSmsManage : MonoBehaviour
         lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
         lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
         lblAlarmLevel = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();
-        tglIsEnabled = transform.Find("Toggle").GetComponent<Toggle>();
+        tglIsEnabled = transform.Find("ToggleOnOff").GetComponent<Toggle>();
 
         btnItem = GetComponent<Button>();
         btnItem.onClick.AddListener(OnClick);
