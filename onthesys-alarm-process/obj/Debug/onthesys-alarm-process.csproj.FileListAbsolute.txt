@@ -1,0 +1,10 @@
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Debug\onthesys-alarm-process.exe.config
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Debug\onthesys-alarm-process.exe
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Debug\onthesys-alarm-process.pdb
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Debug\onthesys-alarm-process.csproj.AssemblyReference.cache
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Debug\onthesys-alarm-process.csproj.CoreCompileInputs.cache
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Debug\onthesys-alarm-process.exe
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Debug\onthesys-alarm-process.pdb
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Debug\Newtonsoft.Json.dll
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Debug\Newtonsoft.Json.xml
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Debug\onthesys.954E4BE4.Up2Date
