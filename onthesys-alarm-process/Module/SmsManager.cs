@@ -68,6 +68,24 @@ namespace onthesys_alarm_process.Process
             }
 
             this.alarmLogs = newAlarmLogs;
+
+            CollectWaterQualityData();
+        }
+
+        // test
+        void CollectWaterQualityData()
+        {
+            List<WQ_Item> upperData = new List<WQ_Item>();
+            if (app.smsManager.smsHandle.SendGetCurrentValue(DEV_WQ_POS.UPPER, ref upperData))
+            {
+                Console.WriteLine($"Water Quality Data Collected - UPPER: {upperData.Count} items");
+            }
+
+            List<WQ_Item> lowerData = new List<WQ_Item>();
+            if (app.smsManager.smsHandle.SendGetCurrentValue(DEV_WQ_POS.LOWER, ref lowerData))
+            {
+                Console.WriteLine($"Water Quality Data Collected - LOWER: {lowerData.Count} items");
+            }
         }
 
         //센서의 데이터 > 센서의 현재 상태

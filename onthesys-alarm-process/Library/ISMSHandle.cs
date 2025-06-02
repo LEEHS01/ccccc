@@ -15,8 +15,8 @@ namespace DMXOS
 
     public class WQ_Item
     {
-        public bool Timeout { get; set; }
-        public float PV { get; set; }
+        public bool Timeout { get; set; } // 센서 통신 타임아웃 여부
+        public float PV { get; set; }     // Process Value (실제 측정값)
     }
 
     internal interface ISMSHandle
