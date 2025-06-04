@@ -1,4 +1,5 @@
-﻿using Microsoft.SqlServer.Server;
+﻿using DMXOS;
+using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
 using Onthesys.WebBuild;
 using System;
@@ -13,6 +14,7 @@ using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static onthesys_alarm_process.Process.UiManager;
 
 namespace onthesys_alarm_process.Process
 {
@@ -38,6 +40,8 @@ namespace onthesys_alarm_process.Process
             app.smsManager.OnAlarmSolved += RequestUpdateAlarm;
             app.smsManager.OnAlarmOccured += RequestInsertAlarm;
 
+            app.smsManager.OnSensorDataReceived += RequestUploadMeasureRecent;
+
             new Thread(() =>
             {
                 Thread.Sleep(1000);
@@ -55,7 +59,30 @@ namespace onthesys_alarm_process.Process
             RequestMeasureLogBySensor(2, 3);
             RequestRefreshDatas();
         }
+        void RequestUploadMeasureRecent(List<MeasureModel> datas)
+        {
+            if (datas.Count == 0) return;
 
+            datas.ForEach(model =>
+                model.measured_time = model.MeasuredTime.AddHours(-9).ToString("yyyy-MM-dd HH:mm:ss"));
+
+            string jsonData = JsonConvert.SerializeObject(datas);
+
+            string query = $@"EXEC WEB_DP.dbo.UPSERT_MEASURE_recent
+            @json = '{jsonData}';";
+
+            ResponseAPIString("SELECT", query).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                }
+                else
+                {
+                    OnDataUploaded?.Invoke($"measure_recent : {datas.Count} 개");
+                }
+            });
+        }
 
         /// <summary>
         /// 노이즈가 제거된 측정 로그 업로드

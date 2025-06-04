@@ -10,20 +10,19 @@ namespace onthesys_alarm_process.Library
 {
     internal class SMSHandleTest : ISMSHandle
     {
-        //DEV_WQ_POS.UPPER 또는 LOWER 위치의 센서 데이터 수집
-        //pvList에 측정값들을 담아서 반환
         public bool SendGetCurrentValue(DEV_WQ_POS devPos, ref List<WQ_Item> pvList)
         {
             Console.WriteLine($"[SMSHandleTest] : {devPos}");
 
-            // 진짜 구현할 부분 - 임시 데이터
+            // 데이터 생성
             pvList = new List<WQ_Item> {
-                new WQ_Item { Timeout = false, PV = 7.2f },
-                new WQ_Item { Timeout = false, PV = 8.5f },
-                new WQ_Item { Timeout = false, PV = 18.3f }
-             };
+            new WQ_Item { Timeout = false, PV = 7.2f },
+            new WQ_Item { Timeout = false, PV = 8.5f },
+            new WQ_Item { Timeout = false, PV = 18.3f }
+        };
 
             Console.WriteLine($"[SMSHandleTest] : {pvList.Count} DATA");
+
             return true;
         }
 

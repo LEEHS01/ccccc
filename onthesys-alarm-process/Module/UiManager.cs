@@ -12,6 +12,7 @@ namespace onthesys_alarm_process.Process
 {
     public class UiManager : Manager
     {
+
         public UiManager(Application app) : base(app)
         {
             interval = 25;
@@ -56,5 +57,7 @@ namespace onthesys_alarm_process.Process
                 while(buffer.Count > 0)
                     Console.WriteLine(buffer.Dequeue());
         }
+
+
     }
 }

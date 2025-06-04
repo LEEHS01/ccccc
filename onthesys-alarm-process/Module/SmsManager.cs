@@ -14,6 +14,7 @@ namespace onthesys_alarm_process.Process
         public event Action OnSmsSended;        //SMS 전송
         public event Action<AlarmLogModel> OnAlarmOccured;     //알람 발생
         public event Action<AlarmLogModel> OnAlarmSolved;     //알람 발생
+        public event Action<List<MeasureModel>> OnSensorDataReceived;
 
         internal ISMSHandle smsHandle;
 
@@ -69,24 +70,51 @@ namespace onthesys_alarm_process.Process
 
             this.alarmLogs = newAlarmLogs;
 
-            CollectWaterQualityData();
+           WaterQualityData();
         }
 
         // test
-        void CollectWaterQualityData()
+        void WaterQualityData()
         {
-            List<WQ_Item> upperData = new List<WQ_Item>();
-            if (app.smsManager.smsHandle.SendGetCurrentValue(DEV_WQ_POS.UPPER, ref upperData))
+            foreach (DEV_WQ_POS position in Enum.GetValues(typeof(DEV_WQ_POS)))
             {
-                Console.WriteLine($"Water Quality Data Collected - UPPER: {upperData.Count} items");
-            }
+                List<WQ_Item> data = new List<WQ_Item>();
+                if (smsHandle.SendGetCurrentValue(position, ref data))
+                {
+                    Console.WriteLine($"Water Quality Data - {position}: {data.Count} items");
 
-            List<WQ_Item> lowerData = new List<WQ_Item>();
-            if (app.smsManager.smsHandle.SendGetCurrentValue(DEV_WQ_POS.LOWER, ref lowerData))
-            {
-                Console.WriteLine($"Water Quality Data Collected - LOWER: {lowerData.Count} items");
+                    // WQ_Item → MeasureModel 변환
+                    var measureData = ConvertToMeasureModels(data, position);
+
+                    // DbManager로 이벤트 발생
+                    OnSensorDataReceived?.Invoke(measureData);
+                }
             }
         }
+
+        List<MeasureModel> ConvertToMeasureModels(List<WQ_Item> wqItems, DEV_WQ_POS position)
+        {
+            int boardId = position == DEV_WQ_POS.UPPER ? 1 : 2; //어찌될지 몰루?
+            var measureModels = new List<MeasureModel>();
+
+            for (int i = 0; i < wqItems.Count; i++) 
+            {
+                var wqItem = wqItems[i];
+                if (!wqItem.Timeout)
+                {
+                    measureModels.Add(new MeasureModel
+                    {
+                        board_id = boardId,
+                        sensor_id = i + 1, 
+                        measured_value = wqItem.PV,
+                        measured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                }
+            }
+
+            return measureModels;
+        }
+
 
         //센서의 데이터 > 센서의 현재 상태
         StatusType EstimateAlarms(SensorModel sensor ,List<MeasureModel> data)
@@ -184,7 +212,31 @@ namespace onthesys_alarm_process.Process
                 Console.WriteLine("OnAlarmOccured - No SMS service found.");
                 return; 
             }
-            foreach (var smsService in tServices)
+
+            if (tServices.Count == 1)
+            {
+                // 한 명일 때
+                var smsService = tServices[0];
+                string personalMessage = $"[{alarm.alarm_level}] {smsService.name}님, {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
+                if (smsService.phone == null) throw new Exception("OnAlarmOccured - No phone number found.");
+                smsHandle.SendSMSToOne(smsService.phone, personalMessage);
+                //OnSmsSended?.Invoke();
+            }
+            else
+            {
+                // 여러 명일 때
+                foreach (var smsService in tServices)
+                {
+                    if (smsService.phone == null) throw new Exception("OnAlarmOccured - No phone number found.");
+                }
+
+                List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
+                string groupMessage = $"[{alarm.alarm_level}] {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
+                smsHandle.SendSMSToList(phoneNumbers, groupMessage);
+                //OnSmsSended?.Invoke();
+            }
+
+            /*foreach (var smsService in tServices)
             {
                 string message = $"[{alarm.alarm_level}] {smsService.name}님, {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
 
@@ -192,7 +244,7 @@ namespace onthesys_alarm_process.Process
 
                 smsHandle.SendSMSToOne(smsService.phone, message);
                 //OnSmsSended?.Invoke();
-            }
+            }*/
         }
 
     }

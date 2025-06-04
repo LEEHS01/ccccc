@@ -27,6 +27,11 @@ public class PageSmsRegister : MonoBehaviour
         btnConfirm = transform.Find("btnInput").GetComponent<Button>();
         btnConfirm.onClick.AddListener(OnClickConfirm);
 
+        ddlThreshold = transform.Find("dpReference").GetComponent<TMP_Dropdown>();
+        ddlThreshold.options.Clear();
+        ddlThreshold.options.Add(new TMP_Dropdown.OptionData("경보"));  // 인덱스 0
+        ddlThreshold.options.Add(new TMP_Dropdown.OptionData("경계"));  // 인덱스 1
+
         UiManager.Instance.Register(UiEventType.ResponseSmsRegister, OnResponseSmsRegister);
         UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
 
@@ -62,8 +67,14 @@ public class PageSmsRegister : MonoBehaviour
 
     StatusType GetTypeFromDropdown() 
     {
+        return ddlThreshold.value switch
+        {
+            0 => StatusType.WARNING,   
+            1 => StatusType.SERIOUS,  
+            _ => StatusType.WARNING    
+        };
         //TODO
-        return StatusType.WARNING;
+        //return StatusType.WARNING;
     }
     void OnClickConfirm() 
     {
