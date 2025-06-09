@@ -12,7 +12,7 @@ using UnityEngine.UI;
 public class PageSmsRegister : MonoBehaviour
 {
     TMP_InputField txbName, txbPhoneNumber;
-    TMP_Dropdown ddlThreshold;
+    TMP_Dropdown ddlSensorselect, ddlThresholdselect;
     Button btnConfirm, btnCancel;
 
 
@@ -27,10 +27,11 @@ public class PageSmsRegister : MonoBehaviour
         btnConfirm = transform.Find("btnInput").GetComponent<Button>();
         btnConfirm.onClick.AddListener(OnClickConfirm);
 
-        ddlThreshold = transform.Find("dpReference").GetComponent<TMP_Dropdown>();
-        ddlThreshold.options.Clear();
-        ddlThreshold.options.Add(new TMP_Dropdown.OptionData("경보"));  // 인덱스 0
-        ddlThreshold.options.Add(new TMP_Dropdown.OptionData("경계"));  // 인덱스 1
+        //0605 수정
+        ddlSensorselect = transform.Find("ddlSensor").GetComponent<TMP_Dropdown>();
+        ddlThresholdselect = transform.Find("ddlThreshold").GetComponent<TMP_Dropdown>();
+
+        //InitializeDropdowns();        //임시더미데이터
 
         UiManager.Instance.Register(UiEventType.ResponseSmsRegister, OnResponseSmsRegister);
         UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
@@ -38,12 +39,34 @@ public class PageSmsRegister : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    private void InitializeDropdowns()
+    {
+        ddlSensorselect.options.Clear();
+
+        /*//임시 더미센서데이터
+        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서1 (1-1)"));
+        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서2 (1-2)"));
+        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서3 (2-1)"));*/
+
+        var sensors = UiManager.Instance.modelProvider.GetSensors();
+        foreach (var sensor in sensors)
+        {
+            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name} ({sensor.board_id}-{sensor.sensor_id})"));
+        }
+
+        ddlThresholdselect.options.Clear();
+        ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경보"));    // Warning
+        ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경계"));    // Serious
+    }
+
     private void OnNavigateSms(object obj)
     {
-        if(obj is not Type type) return;
+        if (obj is not Type type) return;
 
         if (type == typeof(PageSmsRegister)) 
         {
+            InitializeDropdowns();
+
             txbName.text = string.Empty;
             txbPhoneNumber.text = string.Empty;
         }
@@ -67,25 +90,29 @@ public class PageSmsRegister : MonoBehaviour
 
     StatusType GetTypeFromDropdown() 
     {
-        return ddlThreshold.value switch
+        return ddlThresholdselect.value switch
         {
             0 => StatusType.WARNING,   
             1 => StatusType.SERIOUS,  
             _ => StatusType.WARNING    
         };
-        //TODO
-        //return StatusType.WARNING;
     }
     void OnClickConfirm() 
     {
+        var sensors = UiManager.Instance.modelProvider.GetSensors();
+        var selectedSensor = sensors[ddlSensorselect.value];
+
+
         SmsServiceModel model = new SmsServiceModel
         {
             name = txbName.text,
             phone = txbPhoneNumber.text,
-            alarm_level = GetTypeFromDropdown().ToDbString(),
-            is_enabled = true 
+            alarm_level = GetTypeFromDropdown().ToString(),  // 0605 수정
+            is_enabled = true,                               // 0605 수정
+            board_id = selectedSensor.board_id,              // 0605 수정
+            sensor_id = selectedSensor.sensor_id,            // 0605 수정
+            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  //0605 수정
         };
-
 
         UiManager.Instance.Invoke(UiEventType.RequestSmsRegister, model);
     }

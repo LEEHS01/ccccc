@@ -19,13 +19,13 @@ public class ItemSmsManage : MonoBehaviour
 
     Button btnItem;
     Toggle tglIsEnabled;
-    TMP_Text lblName, lblPhone, lblAlarmLevel;
+    TMP_Text lblName, lblPhone, lblthreshold;
 
     private void Start()
     {
         lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
         lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
-        lblAlarmLevel = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();
+        lblthreshold = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();     //임계값
         tglIsEnabled = transform.Find("ToggleOnOff").GetComponent<Toggle>();
 
         btnItem = GetComponent<Button>();
@@ -41,9 +41,27 @@ public class ItemSmsManage : MonoBehaviour
 
         lblName.text = data.name;
         lblPhone.text = data.phone;
-        lblAlarmLevel.text = data.alarm_level;
-        tglIsEnabled.SetIsOnWithoutNotify(data.isEnabled);
+
+        //0605 수정사항
+        string thresholdValue = GetThresholdValue(data.alarm_level);
+        lblthreshold.text = thresholdValue;
+
+        tglIsEnabled.SetIsOnWithoutNotify(data.is_enabled);
         tglIsEnabled.onValueChanged.AddListener(OnToggleEnabled);
+    }
+
+    //0605 수정사항
+    private string GetThresholdValue(string alarmLevel)
+    {
+        var sensor = UiManager.Instance.modelProvider.GetSensor(data.board_id, data.sensor_id);
+        if (sensor == null) return "-";
+
+        return alarmLevel switch
+        {
+            "Warning" => sensor.threshold_warning.ToString("F1"),
+            "Serious" => sensor.threshold_serious.ToString("F1"),
+            _ => "-"
+        };
     }
 
     private void OnToggleEnabled(bool isEnabled)

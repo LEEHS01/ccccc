@@ -11,11 +11,13 @@ namespace Onthesys.WebBuild
     public class SmsServiceModel
     {
         public int service_id;
+        public int board_id;
+        public int sensor_id;
         public string name;
         public string phone;
         public bool is_enabled;
-        public bool isEnabled => is_enabled;
         public string alarm_level;
+        public string checked_time;
     }
 
     [System.Serializable]
