@@ -326,13 +326,9 @@ namespace Onthesys.WebBuild
 
 
         }
-
+        //수정 0609
         IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
         {
-            int successCount = 0;
-            int totalCount = sensors.Count;
-            StringBuilder errorMessages = new StringBuilder();
-
             foreach (var sensor in sensors)
             {
                 var query = $@"
@@ -343,49 +339,20 @@ namespace Onthesys.WebBuild
             WHERE 
                 sensor_id = {sensor.sensor_id}";
 
-                bool requestCompleted = false;
-                bool requestSuccess = false;
-                string requestError = "";
-
                 yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
                 {
-                    requestCompleted = true;
                     if (result.Contains("Error"))
                     {
-                        requestSuccess = false;
-                        requestError = result;
-                        errorMessages.AppendLine($"센서 {sensor.sensor_name}: {result}");
+                        callback(false, $"임계값 업데이트 실패: {result}");
                     }
                     else
                     {
-                        requestSuccess = true;
-                        successCount++;
                         Debug.Log($"센서 {sensor.sensor_name} 임계값 업데이트 완료");
                     }
                 });
-
-                // 요청 완료까지 대기
-                yield return new WaitUntil(() => requestCompleted);
-
-                if (!requestSuccess)
-                {
-                    Debug.LogError($"센서 {sensor.sensor_name} 임계값 업데이트 실패: {requestError}");
-                }
             }
 
-            // 결과 콜백
-            if (successCount == totalCount)
-            {
-                callback(true, $"모든 센서 임계값이 성공적으로 업데이트되었습니다. ({successCount}/{totalCount})");
-            }
-            else if (successCount > 0)
-            {
-                callback(false, $"일부 센서 임계값 업데이트에 실패했습니다. ({successCount}/{totalCount})\n{errorMessages}");
-            }
-            else
-            {
-                callback(false, $"모든 센서 임계값 업데이트에 실패했습니다.\n{errorMessages}");
-            }
+            callback(true, "임계값이 성공적으로 저장되었습니다.");
         }
 
         #endregion

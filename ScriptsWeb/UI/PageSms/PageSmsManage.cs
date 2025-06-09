@@ -14,7 +14,7 @@ public class PageSmsManage : MonoBehaviour
     Transform itemContainer;
     List<ItemSmsManage> smsItems => itemContainer.GetComponentsInChildren<ItemSmsManage>().ToList();
 
-    Button btnUnregister, btnRegister;
+    Button btnUnregister, btnRegister, btnThresholdsetting;
 
     void Start() 
     {
@@ -23,6 +23,9 @@ public class PageSmsManage : MonoBehaviour
 
         btnRegister = transform.Find("List").Find("btnInput").GetComponent<Button>();
         btnRegister.onClick.AddListener(OnClickRegister);
+
+        btnThresholdsetting = transform.Find("List").Find("btnThreshold").GetComponent<Button>();
+        btnRegister.onClick.AddListener(OnClickThreshold);
 
         itemContainer = transform.Find("List").Find("Scroll View").Find("Viewport").Find("SmsServicePanel");
 
@@ -68,4 +71,6 @@ public class PageSmsManage : MonoBehaviour
 
     public void OnClickUnregister() => UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsUnregister));
     public void OnClickRegister() => UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsRegister));
+    public void OnClickThreshold() => UiManager.Instance.Invoke(UiEventType.NavigateThreshold);
+
 }
