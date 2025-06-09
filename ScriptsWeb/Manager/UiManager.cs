@@ -116,6 +116,7 @@ namespace Onthesys.WebBuild
         //페이지 이동
         NavigateSms,
         NavigateMain,
+        NavigateThreshold,
 
         //인스펙터 할당 및 해제
         InspectorApply,
@@ -124,6 +125,7 @@ namespace Onthesys.WebBuild
         //SMS 서비스 관련
         RequestVerification,
         ResponseVerification,
+        RequestThresholdUpdate,     //추가
 
         ChangeSmsServiceList,
 
@@ -133,5 +135,8 @@ namespace Onthesys.WebBuild
         RequestSmsUnregister,
         ResponseSmsUpdate,
         RequestSmsUpdate,
+
+        //임계값 관련
+        ResponseThresholdUpdate,
     }
 }

@@ -86,6 +86,8 @@ namespace Onthesys.WebBuild
 
             uiManager.Register(UiEventType.ChangeTimespan, OnChangeTimeSpan);
 
+            uiManager.Register(UiEventType.RequestThresholdUpdate, OnRequestThresholdUpdate);
+
             uiManager.Register(UiEventType.RequestVerification, OnVerificationRequest);
             uiManager.Register(UiEventType.RequestSmsUpdate, OnRequestSmsUpdate);
             uiManager.Register(UiEventType.RequestSmsRegister, OnRequestSmsRegister);
@@ -253,6 +255,44 @@ namespace Onthesys.WebBuild
                 smsServices.RemoveAll(service => service.service_id == serviceId);
                 UiManager.Instance.Invoke(UiEventType.ResponseSmsRegister, (true, "성공적으로 삭제되었습니다."));
             }
+        }
+
+        private void OnRequestThresholdUpdate(object obj)
+        {
+            if (obj is not List<SensorModel> updatedSensors) return;
+
+            Debug.Log($"임계값 업데이트 요청: {updatedSensors.Count}개 센서");
+
+            dbManager.UpdateSensorThresholds(updatedSensors, (isSuccess, message) =>
+            {
+                if (isSuccess)
+                {
+                    // 로컬 센서 데이터 업데이트
+                    foreach (var updatedSensor in updatedSensors)
+                    {
+                        var localSensor = sensors.Find(s =>
+                            s.board_id == updatedSensor.board_id &&
+                            s.sensor_id == updatedSensor.sensor_id);
+
+                        if (localSensor != null)
+                        {
+                            localSensor.threshold_warning = updatedSensor.threshold_warning;
+                            localSensor.threshold_serious = updatedSensor.threshold_serious;
+                        }
+                    }
+
+                    // UI에 성공 알림
+                    uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (true, "임계값이 성공적으로 저장되었습니다."));
+
+                    // 센서 데이터 변경 알림
+                    uiManager.Invoke(UiEventType.ChangeSensorData);
+                }
+                else
+                {
+                    // UI에 실패 알림
+                    uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (false, message));
+                }
+            });
         }
         #endregion [EventListener]
 

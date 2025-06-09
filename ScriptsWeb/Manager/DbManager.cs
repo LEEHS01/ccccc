@@ -127,6 +127,14 @@ namespace Onthesys.WebBuild
         internal void SetSmsServiceDelete(int serviceId, Action callback)
             => StartCoroutine(SetSmsServiceDeleteFunc(serviceId, callback));
 
+        /// <summary>
+        /// 센서 임계값을 업데이트하는 함수입니다.
+        /// </summary>
+        /// <param name="sensors">업데이트할 센서 목록</param>
+        /// <param name="callback">완료 콜백 (성공여부, 메시지)</param>
+        internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
+            => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));
+
         #endregion
 
         #region [DB 요청 및 처리문]
@@ -317,6 +325,67 @@ namespace Onthesys.WebBuild
             });
 
 
+        }
+
+        IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
+        {
+            int successCount = 0;
+            int totalCount = sensors.Count;
+            StringBuilder errorMessages = new StringBuilder();
+
+            foreach (var sensor in sensors)
+            {
+                var query = $@"
+            UPDATE WEB_DP.dbo.sensor 
+            SET 
+                threshold_warning = {sensor.threshold_warning}, 
+                threshold_serious = {sensor.threshold_serious}
+            WHERE 
+                sensor_id = {sensor.sensor_id}";
+
+                bool requestCompleted = false;
+                bool requestSuccess = false;
+                string requestError = "";
+
+                yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
+                {
+                    requestCompleted = true;
+                    if (result.Contains("Error"))
+                    {
+                        requestSuccess = false;
+                        requestError = result;
+                        errorMessages.AppendLine($"센서 {sensor.sensor_name}: {result}");
+                    }
+                    else
+                    {
+                        requestSuccess = true;
+                        successCount++;
+                        Debug.Log($"센서 {sensor.sensor_name} 임계값 업데이트 완료");
+                    }
+                });
+
+                // 요청 완료까지 대기
+                yield return new WaitUntil(() => requestCompleted);
+
+                if (!requestSuccess)
+                {
+                    Debug.LogError($"센서 {sensor.sensor_name} 임계값 업데이트 실패: {requestError}");
+                }
+            }
+
+            // 결과 콜백
+            if (successCount == totalCount)
+            {
+                callback(true, $"모든 센서 임계값이 성공적으로 업데이트되었습니다. ({successCount}/{totalCount})");
+            }
+            else if (successCount > 0)
+            {
+                callback(false, $"일부 센서 임계값 업데이트에 실패했습니다. ({successCount}/{totalCount})\n{errorMessages}");
+            }
+            else
+            {
+                callback(false, $"모든 센서 임계값 업데이트에 실패했습니다.\n{errorMessages}");
+            }
         }
 
         #endregion

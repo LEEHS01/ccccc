@@ -107,7 +107,7 @@ public class PageSmsRegister : MonoBehaviour
         {
             name = txbName.text,
             phone = txbPhoneNumber.text,
-            alarm_level = GetTypeFromDropdown().ToString(),  // 0605 수정
+            alarm_level = GetTypeFromDropdown().ToDbString(),  // 0605 수정
             is_enabled = true,                               // 0605 수정
             board_id = selectedSensor.board_id,              // 0605 수정
             sensor_id = selectedSensor.sensor_id,            // 0605 수정

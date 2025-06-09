@@ -134,7 +134,7 @@ public class PageSmsUpdate : MonoBehaviour
         UiManager.Instance.Invoke(UiEventType.RequestSmsUpdate, (data.service_id, new SmsServiceModel() 
         {
             service_id = data.service_id,
-            alarm_level = GetTypeFromDropdown().ToString(),
+            alarm_level = GetTypeFromDropdown().ToDbString(),
             name = txbName.text,
             phone = txbPhoneNumber.text,
             is_enabled = data.is_enabled,                    //0605 isEnabled → is_enabled
