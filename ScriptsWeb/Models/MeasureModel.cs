@@ -1,5 +1,3 @@
-
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
@@ -10,8 +8,8 @@ namespace Onthesys.WebBuild
     {
         public int board_id;
         public int sensor_id;
-        public string measured_time;
         public float measured_value;
+        public string measured_time;
         public DateTime MeasuredTime => DateTime.Parse(measured_time);
     }
 

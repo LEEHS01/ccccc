@@ -49,7 +49,6 @@
     <Compile Include="Library\FirFilter.cs" />
     <Compile Include="Library\SMSHandleTest.cs" />
     <Compile Include="Model\AlarmLogModel.cs" />
-    <Compile Include="Model\CorrelationModel.cs" />
     <Compile Include="Model\MeasureModel.cs" />
     <Compile Include="Model\SensorModel.cs" />
     <Compile Include="Model\SmsServiceModel.cs" />
@@ -65,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="ClassDiagram.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -67,7 +67,7 @@ async function UpdateSensorStatus() {
                 m.measured_value
             FROM sensor s
             JOIN measure_recent m
-            ON s.board_id = m.board_id AND s.sensor_id = m.sensor_id
+            ON s.board_id = 1 AND s.sensor_id = m.sensor_id
         `);
 
         // 2️⃣ 센서 상태 판별 및 업데이트 처리
@@ -75,16 +75,16 @@ async function UpdateSensorStatus() {
             const { board_id, sensor_id, threshold_critical, threshold_serious, threshold_warning, measured_value } = sensor;
 
             // 상태 판정
-            let currentStatus;
-            if (measured_value >= threshold_critical) {
-                currentStatus = 'Critical';
-            } else if (measured_value >= threshold_serious) {
-                currentStatus = 'Serious';
-            } else if (measured_value >= threshold_warning) {
-                currentStatus = 'Warning';
-            } else {
-                currentStatus = 'Normal';
-            }
+            // let currentStatus;
+            // if (measured_value >= threshold_critical) {
+            //     currentStatus = 'Critical';
+            // } else if (measured_value >= threshold_serious) {
+            //     currentStatus = 'Serious';
+            // } else if (measured_value >= threshold_warning) {
+            //     currentStatus = 'Warning';
+            // } else {
+            //     currentStatus = 'Normal';
+            // }
 
             console.log(`🌐 Sensor [${board_id}, ${sensor_id}] 상태: ${currentStatus}`);
 
@@ -92,8 +92,7 @@ async function UpdateSensorStatus() {
             const { recordset: activeAlarms } = await sql.query(`
                 SELECT alarm_id, alarm_level
                 FROM alarm_log
-                WHERE board_id = ${board_id} 
-                  AND sensor_id = ${sensor_id} 
+                WHERE sensor_id = ${sensor_id} 
                   AND solved_time IS NULL
             `);
             if (activeAlarms.length === 0 && currentStatus !== 'Normal') {
@@ -134,26 +133,26 @@ async function UpdateSensorStatus() {
 exports.StartProcess = ()=>
 {
     //프로세스
-    setInterval(() => {
-        UpdateTestMeasureLogs();
+    // setInterval(() => {
+    //     UpdateTestMeasureLogs();
 
-        console.log('✅', local.getLocalTimeNow(), ' : ',
-            'log has been updated.');
-    }, 11 * 1000)
+    //     console.log('✅', local.getLocalTimeNow(), ' : ',
+    //         'log has been updated.');
+    // }, 11 * 1000)
 
-    setInterval(() => {
-        UpdateTestMeasureRecent(1, 1);
-        UpdateTestMeasureRecent(1, 2);
-        UpdateTestMeasureRecent(1, 3);
-        UpdateTestMeasureRecent(2, 1);
-        UpdateTestMeasureRecent(2, 2);
-        UpdateTestMeasureRecent(2, 3);
+    // setInterval(() => {
+    //     UpdateTestMeasureRecent(1, 1);
+    //     UpdateTestMeasureRecent(1, 2);
+    //     UpdateTestMeasureRecent(1, 3);
+    //     UpdateTestMeasureRecent(2, 1);
+    //     UpdateTestMeasureRecent(2, 2);
+    //     UpdateTestMeasureRecent(2, 3);
 
-        console.log('✅', local.getLocalTimeNow(), ' : ',
-            'recent values has been updated.');
-    }, 10 * 1000);
+    //     console.log('✅', local.getLocalTimeNow(), ' : ',
+    //         'recent values has been updated.');
+    // }, 10 * 1000);
 
-    setInterval(() => {
-        UpdateSensorStatus();
-    }, 10 * 1000);
+    // setInterval(() => {
+    //     UpdateSensorStatus();
+    // }, 10 * 1000);
 }

@@ -88,21 +88,21 @@ public class PanelAlarmNotify : MonoBehaviour
         DOVirtual.DelayedCall(3, LabelAnimationProcess);
     }
     #endregion
-
+    
 
     #region Function
     List<string> TranslateLogsToTexts(List<AlarmLogModel> alarmLogs) => alarmLogs.Select(alarmLog => TranslateLogToText(alarmLog)).ToList();
 
     string TranslateLogToText(AlarmLogModel alarmLog)
     {
-        SensorModel sensorModel = modelProvider.GetSensor(alarmLog.board_id, alarmLog.sensor_id);
+        SensorModel sensorModel = modelProvider.GetSensor(1,alarmLog.sensor_id);
         StatusType status = alarmLog.GetAlarmLevel();
 
         string res = "";
         res += alarmLog.OccuredTime.AddHours(-9).ToString("yyyy/MM/dd HH:mm ");
         res += $"[{sensorModel.sensor_name}] ";
         res += 
-            status == StatusType.CRITICAL? "치명" :
+            //status == StatusType.CRITICAL? "치명" :
             status == StatusType.WARNING ? "경보" :
             status == StatusType.SERIOUS ? "경계" : "(알 수 없음)";
         res += " 발생";

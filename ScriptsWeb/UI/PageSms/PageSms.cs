@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEditor.Progress;
 
 public class PageSms : MonoBehaviour 
 {
@@ -22,19 +21,24 @@ public class PageSms : MonoBehaviour
         pages.Add(typeof(PageSmsRegister), transform.Find("Panels").GetComponentInChildren<PageSmsRegister>().gameObject);
         pages.Add(typeof(PageSmsUnregister), transform.Find("Panels").GetComponentInChildren<PageSmsUnregister>().gameObject);
         pages.Add(typeof(PageSmsUpdate), transform.Find("Panels").GetComponentInChildren<PageSmsUpdate>().gameObject);
+        pages.Add(typeof(PageThreshold), transform.Find("Panels").GetComponentInChildren<PageThreshold>().gameObject);  //0609 수정
     }
 
     private void Start()
     {
-        btnNavigateMain = transform.Find("Title_UI").Find("HomeBtn").GetComponent<Button>(); 
+        btnNavigateMain = transform.Find("HomeBtn").GetComponent<Button>();
         btnNavigateMain.onClick.AddListener(() =>
         {
             UiManager.Instance.Invoke(UiEventType.NavigateMain);
         });
         UiManager.Instance.Register(UiEventType.ResponseVerification, OnVerificationResponse);
         UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
+        UiManager.Instance.Register(UiEventType.Initiate, OnInitiate);
 
+    }
 
+    private void OnInitiate(object obj)
+    {
         gameObject.SetActive(false);
     }
 

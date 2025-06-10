@@ -22,9 +22,9 @@ namespace Onthesys.WebBuild
 
         public List<SmsServiceModel> GetSmsServices();
         public SmsServiceModel GetSmsServiceById(int serviceId);
-        public List<CorrelationModel> GetCorrelations();
-        public List<CorrelationModel> GetCorrelationBySensor(int boardId, int sensorId);
-        public List<MeasureModel> GetMeasureInferenceList();
-        public List<MeasureModel> GetMeasureDenoisedList();
+        //public List<CorrelationModel> GetCorrelations();
+        //public List<CorrelationModel> GetCorrelationBySensor(int boardId, int sensorId);
+        //public List<MeasureModel> GetMeasureInferenceList();
+        //public List<MeasureModel> GetMeasureDenoisedList();
     }
 }

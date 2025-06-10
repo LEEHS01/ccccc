@@ -69,11 +69,11 @@ namespace Onthesys.WebBuild
 
             });
 
-            dbManager.GetCorrelations(datas =>
-            {
-                correlations.Clear();
-                correlations.AddRange(datas);
-            });
+            //dbManager.GetCorrelations(datas =>
+            //{
+            //    correlations.Clear();
+            //    correlations.AddRange(datas);
+            //});
 
             //Register Events
 
@@ -81,12 +81,12 @@ namespace Onthesys.WebBuild
             uiManager.Register(UiEventType.PopupError, OnPopupError);
             
             uiManager.Register(UiEventType.RequestSearchHistory, OnRequestSearchHistory);
-            uiManager.Register(UiEventType.RequestSearchInference, OnRequestSearchInference);
-            uiManager.Register(UiEventType.RequestSearchDenoised, OnRequestSearchDenoised);
+            //uiManager.Register(UiEventType.RequestSearchInference, OnRequestSearchInference);
+            //uiManager.Register(UiEventType.RequestSearchDenoised, OnRequestSearchDenoised);
 
             uiManager.Register(UiEventType.ChangeTimespan, OnChangeTimeSpan);
 
-            uiManager.Register(UiEventType.RequestThresholdUpdate, OnRequestThresholdUpdate);
+            //uiManager.Register(UiEventType.RequestThresholdUpdate, OnRequestThresholdUpdate);   //추가 0609
 
             uiManager.Register(UiEventType.RequestVerification, OnVerificationRequest);
             uiManager.Register(UiEventType.RequestSmsUpdate, OnRequestSmsUpdate);
@@ -106,7 +106,7 @@ namespace Onthesys.WebBuild
                 return;
             }
 
-            bool isInitiated = sensors.Count != 0 && measureRecents.Count != 0 && correlations.Count != 0;
+            bool isInitiated = sensors.Count != 0 && measureRecents.Count != 0 /*&& correlations.Count != 0*/;
 
             Debug.Log("AwaitInitiating 작동 중 ");
             if (!isInitiated)
@@ -123,8 +123,8 @@ namespace Onthesys.WebBuild
 
         private void OnInitiate(object obj)
         {
-            DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetMeasureRecentProcess);
-            DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetAlarmLogProcess);
+            DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetMeasureRecentProcess).SetLoops(-1);
+            DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetAlarmLogProcess).SetLoops(-1);
 
         }
 
@@ -137,46 +137,51 @@ namespace Onthesys.WebBuild
 
         private void OnRequestSearchHistory(object obj)
         {
-            if (obj is not (int boardId , int sensorId, DateTime fromDt, DateTime toDt)) return;
+            if (obj is not (int sensorId, DateTime fromDt, DateTime toDt)) return;
 
-            Debug.LogWarning("dbManager.GetMeasureHistoryTimeRange Started");
-            dbManager.GetMeasureHistoryTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
+            measureHistoryLogs.Clear();
+            dbManager.GetMeasureHistoryTimeRange(1, sensorId, fromDt, toDt, 50, upperLogs =>
             {
-                Debug.LogWarning("dbManager.GetMeasureHistoryTimeRange End");
-                measureHistoryLogs.Clear();
-                measureHistoryLogs.AddRange(logs);
-                uiManager.Invoke(UiEventType.ChangeTrendLineHistory);
+                measureHistoryLogs.AddRange(upperLogs);
+                Debug.Log($"measureHistoryLogs Upper Count: {upperLogs.Count}");
+                dbManager.GetMeasureHistoryTimeRange(2, sensorId, fromDt, toDt, 50, lowerLogs =>
+                {
+                    measureHistoryLogs.AddRange(lowerLogs);
+                    Debug.Log($"measureHistoryLogs Lower Count: {lowerLogs.Count}");
+                    Debug.Log($"measureHistoryLogs.Count: {measureHistoryLogs.Count}");
+                    uiManager.Invoke(UiEventType.ChangeTrendLineHistory);
+                });
             });
 
         }
 
-        private void OnRequestSearchInference(object obj)
-        {
-            if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
+        //private void OnRequestSearchInference(object obj)
+        //{
+        //    if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
 
-            Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange Started");
-            dbManager.GetMeasureInferenceTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
-            {
-                Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange End");
-                measureInference.Clear();
-                measureInference.AddRange(logs);
-                uiManager.Invoke(UiEventType.ChangeTrendLineInference);
-            });
-        }
+        //    Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange Started");
+        //    dbManager.GetMeasureInferenceTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
+        //    {
+        //        Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange End");
+        //        measureInference.Clear();
+        //        measureInference.AddRange(logs);
+        //        uiManager.Invoke(UiEventType.ChangeTrendLineInference);
+        //    });
+        //}
 
-        private void OnRequestSearchDenoised(object obj)
-        {
-            if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
+        //private void OnRequestSearchDenoised(object obj)
+        //{
+        //    if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
 
-            Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange Started");
-            dbManager.GetMeasureDenoiseTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
-            {
-                Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange End");
-                measureDenoised.Clear();
-                measureDenoised.AddRange(logs);
-                uiManager.Invoke(UiEventType.ChangeTrendLineDenoised);
-            });
-        }
+        //    Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange Started");
+        //    dbManager.GetMeasureDenoiseTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
+        //    {
+        //        Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange End");
+        //        measureDenoised.Clear();
+        //        measureDenoised.AddRange(logs);
+        //        uiManager.Invoke(UiEventType.ChangeTrendLineDenoised);
+        //    });
+        //}
 
         private void OnVerificationRequest(object obj) 
         {
@@ -256,8 +261,8 @@ namespace Onthesys.WebBuild
                 UiManager.Instance.Invoke(UiEventType.ResponseSmsRegister, (true, "성공적으로 삭제되었습니다."));
             }
         }
-
-        private void OnRequestThresholdUpdate(object obj)
+        //0609 수정
+       /* private void OnRequestThresholdUpdate(object obj)
         {
             if (obj is not List<SensorModel> updatedSensors) return;
 
@@ -293,7 +298,7 @@ namespace Onthesys.WebBuild
                     uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (false, message));
                 }
             });
-        }
+        }*/
         #endregion [EventListener]
 
         #region [Process]
@@ -306,8 +311,9 @@ namespace Onthesys.WebBuild
 
                 UiManager.Instance.Invoke(UiEventType.ChangeRecentValue);
 
+                //메모리 누수로 인해 SetLoop()로 수정
                 //Recursive Call
-                DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetMeasureRecentProcess);
+                //DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetMeasureRecentProcess);
             });
         }
 
@@ -320,8 +326,9 @@ namespace Onthesys.WebBuild
                 this.alarmLogs.AddRange(datas);
                 uiManager.Invoke(UiEventType.ChangeAlarmLog);
 
+                //메모리 누수로 인해 SetLoop()로 수정
                 //Recursive Call
-                DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetAlarmLogProcess);
+                //DOVirtual.DelayedCall(Option.TREND_TIME_INTERVAL * 60, GetAlarmLogProcess);
             });
         }
 
@@ -366,7 +373,7 @@ namespace Onthesys.WebBuild
         /// <summary>
         /// 상관관계 값들
         /// </summary>
-        List<CorrelationModel> correlations = new();
+        //List<CorrelationModel> correlations = new();
 
         string verificatedPassword = "", verificatedCode = "";
 
@@ -395,8 +402,9 @@ namespace Onthesys.WebBuild
 
             float value = GetMeasureRecentBySensor(boardId, sensorId)?.measured_value ?? -1;
 
-            if (0f > value) return StatusType.ERROR;
-            if (foundSensor.threshold_critical < value) return StatusType.CRITICAL;
+            //delta로 넘어오면서 0이하의 값은 오히려 정상이됨. 치명 Status 제외 적용
+            //if (0f > value) return StatusType.ERROR;
+            //if (foundSensor.threshold_critical < value) return StatusType.CRITICAL;
             if (foundSensor.threshold_warning < value) return StatusType.WARNING;
             if (foundSensor.threshold_serious < value) return StatusType.SERIOUS;
             return StatusType.NORMAL;
@@ -406,8 +414,9 @@ namespace Onthesys.WebBuild
             var foundSensor = sensors.Find(item => item.board_id == boardId && item.sensor_id == sensorId);
             if (foundSensor is null) return StatusType.ERROR;
 
-            if (0f > value) return StatusType.ERROR;
-            if (foundSensor.threshold_critical < value) return StatusType.CRITICAL;
+            //delta로 넘어오면서 0이하의 값은 오히려 정상이됨. 치명 Status 제외 적용
+            //if (0f > value) return StatusType.ERROR;
+            //if (foundSensor.threshold_critical < value) return StatusType.CRITICAL;
             if (foundSensor.threshold_warning < value) return StatusType.WARNING;
             if (foundSensor.threshold_serious < value) return StatusType.SERIOUS;
             return StatusType.NORMAL;
@@ -421,13 +430,13 @@ namespace Onthesys.WebBuild
 
         public SmsServiceModel GetSmsServiceById(int serviceId) => smsServices.Find(service => service.service_id == serviceId);
 
-        public List<CorrelationModel> GetCorrelations() => correlations;
+        //public List<CorrelationModel> GetCorrelations() => correlations;
 
-        public List<CorrelationModel> GetCorrelationBySensor(int boardId, int sensorId) => correlations.Where(item => item.base_sensor_name == GetSensor(boardId,sensorId).sensor_name).ToList();
+        //public List<CorrelationModel> GetCorrelationBySensor(int boardId, int sensorId) => correlations.Where(item => item.base_sensor_name == GetSensor(boardId,sensorId).sensor_name).ToList();
 
 
-        public List<MeasureModel> GetMeasureInferenceList() => measureInference;
-        public List<MeasureModel> GetMeasureDenoisedList()=> measureDenoised;
+        //public List<MeasureModel> GetMeasureInferenceList() => measureInference;
+        //public List<MeasureModel> GetMeasureDenoisedList()=> measureDenoised;
         #endregion [ModelProvider]
 
 

@@ -85,7 +85,7 @@ public class PageSmsUnregister : MonoBehaviour
             //실패알림 TODO
         }
     }
-
+    //이거 없애도되나?
     StatusType GetTypeFromDropdown()
     {
         //TODO

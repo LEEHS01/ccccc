@@ -5,7 +5,7 @@ const option = require('../system/option.js');
 
 exports.Query = async (req, res) => {
     const { SQLType, SQLquery } = req.body;
-    console.log('✅', local.getLocalTimeNow(), ' : ', '[Query Reqeusted]\n' + SQLquery.toString().substring(0,50) + "...");
+    console.log('✅', local.getLocalTimeNow(), ' : ', '[Query Reqeusted]\n' + SQLquery.toString().substring(0,300) + "...");
     if (!SQLquery) {
         return res.status(400).json({ error: "SQLquery is required" });
     }
@@ -16,7 +16,7 @@ exports.Query = async (req, res) => {
 
         res.json({ "items": result.recordset });
 
-        console.log('✅',  local.getLocalTimeNow(), ' : ', '[Query Result]\n' + result.recordset.toString().substring(0,50) + "...");
+        console.log('✅',  local.getLocalTimeNow(), ' : ', '[Query Result]\n' + JSON.stringify(result.recordset)); //.substring(0,300) + "..."
     }
     catch (err) {
         res.status(500).json({ error: err.message });

@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="데이터를 저장하고 다루기 위한 자료형입니다.">
+    <Position X="0.542" Y="5.302" Height="0.75" Width="1.7" />
+  </Comment>
+  <Comment CommentText="Program 클래스는 단순히 진입점을 제공하고, Application 클래스를 생성합니다.">
+    <Position X="4.49" Y="1.667" Height="0.917" Width="1.7" />
+  </Comment>
+  <Comment CommentText="Application은 관심사에 의해 나뉜 Manager들을 관리하고 이들간의 참조를 제공해줍니다.">
+    <Position X="9.667" Y="2.073" Height="0.917" Width="1.95" />
+  </Comment>
+  <Comment CommentText="Manager 클래스는 각각의 주기적인 비동기 처리를 제공하고 있으며, 서로를 이벤트로 호출해 자료구조를 전달합니다.">
+    <Position X="13.75" Y="2" Height="0.917" Width="1.95" />
+  </Comment>
+  <Comment CommentText="DbManager는 메인 서버에게 쿼리문 수행을 요청하는 기능을 제공합니다. 또한, 이렇게 수행한 쿼리문의 결과를 콜백을 통해 제공합니다.">
+    <Position X="2.948" Y="6.812" Height="0.917" Width="1.95" />
+  </Comment>
+  <Comment CommentText="SMS 서비스는 plotted 된 데이터를 알람 임계값과 비교하고 그 결과를 통해 알람을 발생 &amp; 해제 시키고 ISMSHandle을 통해 sms 전송을 수행합니다.">
+    <Position X="4.469" Y="9.333" Height="0.917" Width="2.297" />
+  </Comment>
+  <Comment CommentText="ISMSHandle은 CDMA 장비 제어 클래스가 구현할 인터페이스로 현재는 테스트용 객체를 사용 중">
+    <Position X="4.81" Y="10.495" Height="0.917" Width="1.95" />
+  </Comment>
+  <Comment CommentText="FIR 필터는 순간적인 노이즈를 걸러내주는 필터로 계측값 중 이상값이나 임계점 위아래로 출렁이는 값으로 인해 불필요한 알람이 생성되어 시스템의 변별력이 떨어지는 것을 방지해준다,">
+    <Position X="10.365" Y="8.229" Height="0.917" Width="3.127" />
+  </Comment>
+  <Comment CommentText="FilterManager는 주기적으로 계측값을 가져와 이를 FIR 필터로 노이즈를 제거한 뒤, 이를 알람 판단에 사용한다.">
+    <Position X="10.385" Y="6.896" Height="0.917" Width="1.94" />
+  </Comment>
+  <Comment CommentText="UiManager는 프로그램 내부에서 작동하는 기능들을 콘솔을 통해 보여주기 위한 기능이다.">
+    <Position X="12.948" Y="4.49" Height="0.917" Width="1.94" />
+  </Comment>
+  <Class Name="onthesys_alarm_process.Process.DbManager">
+    <Position X="5" Y="4.5" Width="1.5" />
+    <NestedTypes>
+      <Class Name="onthesys_alarm_process.Process.DbManager.QueryPayload" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Module\DbManager.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>CAAAAAAABAgAAAAAAkASAAEAAIQIAIAAAAAQgAAAABA=</HashCode>
+      <FileName>Module\DbManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Process.FilterManager">
+    <Position X="8.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAgAAAAAAAAAAAIAAABAAAAAAABA=</HashCode>
+      <FileName>Module\FilterManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Process.Manager" Collapsed="true">
+    <Position X="12" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAgAAAACgAAAAAIAAICAAAAAACQA=</HashCode>
+      <FileName>Module\Manager.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="onthesys_alarm_process.Process.SmsManager">
+    <Position X="7" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAIIQAAAAAAAAABAoAAQAJAQAAAAYQAABCAAgBCAAA=</HashCode>
+      <FileName>Module\SmsManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Process.UiManager">
+    <Position X="11.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAgAAAAAAAAAAAIAAAABAAAAAAAA=</HashCode>
+      <FileName>Module\UiManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Process.Application">
+    <Position X="8" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACCgAAAAAAAAAAAAUAgAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>System\Application.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="dbManager" />
+      <Field Name="filterManager" />
+      <Field Name="uiManager" />
+      <Field Name="smsManager" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="onthesys_alarm_process.Program">
+    <Position X="6.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAA=</HashCode>
+      <FileName>System\Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Library.FirFilter" Collapsed="true">
+    <Position X="8.75" Y="8.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAAAAAACAAAAAAUAAAAAAAAAAAEIAAABAAAAA=</HashCode>
+      <FileName>Library\FirFilter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Onthesys.WebBuild.SmsServiceModel" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAAAABQAAAAAEAgAAAAgAEIAAgAAAAAAAAAAA=</HashCode>
+      <FileName>Model\SmsServiceModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Onthesys.WebBuild.SensorModel" Collapsed="true">
+    <Position X="2.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAQAAAgQAAAAAEAAAAAAAAAAAAAAAAAAQAIAEE=</HashCode>
+      <FileName>Model\SensorModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Onthesys.WebBuild.MeasureModel" Collapsed="true">
+    <Position X="2.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAQAQAAAAAEAAAAAAAAAAAAAAAAAAAgAAAA=</HashCode>
+      <FileName>Model\MeasureModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Onthesys.WebBuild.AlarmLogModel" Collapsed="true">
+    <Position X="0.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAABAAEAAIEAAAIAAAAAAAAAAAAAAAAAAgA=</HashCode>
+      <FileName>Model\AlarmLogModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="onthesys_alarm_process.Library.SMSHandleTest" Collapsed="true">
+    <Position X="7" Y="11" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEgAAAAAAAAAAAAAAAAQAACAAAAA=</HashCode>
+      <FileName>Library\SMSHandleTest.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="ISMSHandle">
+    <Position X="7" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Library\ISMSHandle.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Onthesys.WebBuild.StatusType">
+    <Position X="2" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABACAAAAAAAAAIEAAAgAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Model\SensorModel.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="맑은 고딕" Size="9" />
+</ClassDiagram>

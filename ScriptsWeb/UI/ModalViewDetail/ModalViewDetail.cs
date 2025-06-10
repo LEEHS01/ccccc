@@ -13,7 +13,7 @@ public class ModalViewDetail : MonoBehaviour
     ModelProvider modelProvider => UiManager.Instance.modelProvider;
 
     //Components
-    List<Button> btnTabList;
+    //List<Button> btnTabList;
     TMP_Dropdown ddlSelectSensor;
     TMP_Text lblSensorName;
 
@@ -22,7 +22,7 @@ public class ModalViewDetail : MonoBehaviour
 
     private void Start()
     {
-        btnTabList = transform.Find("conBtns").GetComponentsInChildren<Button>().ToList();
+        //btnTabList = transform.Find("conBtns").GetComponentsInChildren<Button>().ToList();
 
         ddlSelectSensor = transform.Find("Title_Image").Find("Dropdown").GetComponent<TMP_Dropdown>();
         lblSensorName = transform.Find("Title_Image").Find("Title_Text").GetComponent<TMP_Text>();
@@ -33,24 +33,29 @@ public class ModalViewDetail : MonoBehaviour
 
     private void OnSelectSensorWithinTab(object obj)
     {
-        if (obj is not (int boardId, int sensorId)) return;
+        if (obj is not int sensorId) return;
 
-        int idx = modelProvider.GetSensors().FindIndex(sensor => sensor.board_id == boardId && sensor.sensor_id == sensorId);
+        //기존 코드를 그대로 쓰면 0,1,2 컬랙션에 0,2,4로 접근하게 됨.
+        int idx = sensorId - 1;/*modelProvider.GetSensors().FindIndex(sensor => sensor.board_id == 1 && sensor.sensor_id == sensorId);*/
         ddlSelectSensor.SetValueWithoutNotify(idx);
         lblSensorName.text = "" + modelProvider.GetSensors()[idx].sensor_name;
+        this.gameObject.SetActive(true);
     }
 
     private void OnInitiate(object obj)
     {
         ddlSelectSensor.onValueChanged.AddListener(OnSelectSensor);
-        ddlSelectSensor.options = modelProvider.GetSensors().Select(sensor => new TMP_Dropdown.OptionData(sensor.sensor_name))
+        //3개만 추려서 옵션으로 변환
+        ddlSelectSensor.options = modelProvider.GetSensors()
+            .Where(sensor => sensor.board_id == 1)
+            .Select(sensor => new TMP_Dropdown.OptionData(sensor.sensor_name))
             .ToList();
         ddlSelectSensor.value = 0;
 
         OnSelectSensor(0);
 
 
-        btnTabList[0].onClick.Invoke();
+        //btnTabList[0].onClick.Invoke();
         gameObject.SetActive(false);
     }
 
@@ -58,7 +63,7 @@ public class ModalViewDetail : MonoBehaviour
     {
         SensorModel sensor = modelProvider.GetSensors()[arg0];
 
-        UiManager.Instance.Invoke(UiEventType.SelectSensorWithinTab, (sensor.board_id, sensor.sensor_id));
+        UiManager.Instance.Invoke(UiEventType.SelectSensorWithinTab, sensor.sensor_id);
 
         lblSensorName.text = "" + sensor.sensor_name;
     }

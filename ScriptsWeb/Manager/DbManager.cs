@@ -4,8 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using UnityEditor.Search;
 using UnityEngine;
 using UnityEngine.Networking;
 namespace Onthesys.WebBuild
@@ -70,34 +68,34 @@ namespace Onthesys.WebBuild
         internal void GetAlarmLogs(Action<List<AlarmLogModel>> callback)
             => StartCoroutine(GetAlarmLogsFunc(callback));
 
-        /// <summary>
-        /// 상관관계 그리드 데이터를 가져오는 함수입니다.
-        /// </summary>
-        /// <param name="callback"></param>
-        internal void GetCorrelations(Action<List<CorrelationModel>> callback)
-            => StartCoroutine(GetCorrelationsFunc(callback));
-        /// <summary>
-        /// AI를 통해 추론된 측정값을 가져오는 함수입니다.
-        /// </summary>
-        /// <param name="boardId"></param>
-        /// <param name="sensorId"></param>
-        /// <param name="fromDt"></param>
-        /// <param name="toDt"></param>
-        /// <param name="count"></param>
-        /// <param name="callback"></param>
-        internal void GetMeasureInferenceTimeRange(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
-            => StartCoroutine(GetMeasureInferenceTimeRangeFunc(boardId, sensorId, fromDt, toDt, count, callback));
-        /// <summary>
-        /// 노이즈 제거를 통해 추출된 경향을 가져오는 함수입니다.
-        /// </summary>
-        /// <param name="boardId"></param>
-        /// <param name="sensorId"></param>
-        /// <param name="fromDt"></param>
-        /// <param name="toDt"></param>
-        /// <param name="count"></param>
-        /// <param name="callback"></param>
-        internal void GetMeasureDenoiseTimeRange(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
-            => StartCoroutine(GetMeasureDenoiseTimeRangeFunc(boardId, sensorId, fromDt, toDt, count, callback));
+        /////// <summary>
+        /////// 상관관계 그리드 데이터를 가져오는 함수입니다.
+        /////// </summary>
+        /////// <param name="callback"></param>
+        ////internal void GetCorrelations(Action<List<CorrelationModel>> callback)
+        ////    => StartCoroutine(GetCorrelationsFunc(callback));
+        ///// <summary>
+        ///// AI를 통해 추론된 측정값을 가져오는 함수입니다.
+        ///// </summary>
+        ///// <param name="boardId"></param>
+        ///// <param name="sensorId"></param>
+        ///// <param name="fromDt"></param>
+        ///// <param name="toDt"></param>
+        ///// <param name="count"></param>
+        ///// <param name="callback"></param>
+        //internal void GetMeasureInferenceTimeRange(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
+        //    => StartCoroutine(GetMeasureInferenceTimeRangeFunc(boardId, sensorId, fromDt, toDt, count, callback));
+        ///// <summary>
+        ///// 노이즈 제거를 통해 추출된 경향을 가져오는 함수입니다.
+        ///// </summary>
+        ///// <param name="boardId"></param>
+        ///// <param name="sensorId"></param>
+        ///// <param name="fromDt"></param>
+        ///// <param name="toDt"></param>
+        ///// <param name="count"></param>
+        ///// <param name="callback"></param>
+        //internal void GetMeasureDenoiseTimeRange(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
+        //    => StartCoroutine(GetMeasureDenoiseTimeRangeFunc(boardId, sensorId, fromDt, toDt, count, callback));
         /// <summary>
         /// SMS 서비스 목록을 가져오는 함수입니다.
         /// </summary>
@@ -132,8 +130,8 @@ namespace Onthesys.WebBuild
         /// </summary>
         /// <param name="sensors">업데이트할 센서 목록</param>
         /// <param name="callback">완료 콜백 (성공여부, 메시지)</param>
-        internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
-            => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));
+/*        internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
+            => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));*/
 
         #endregion
 
@@ -154,10 +152,10 @@ namespace Onthesys.WebBuild
         {
             //fromDt = toDt.AddMinutes(-5);
             var query = $@"EXEC GET_MEASURE_TIME_RANGE_WHOLE
-                @table_name = 'measure_denoise',
+                @table_name = 'measure_log',
                 @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
                 @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
-                @element_count = 26,
+                @element_count = 27,
                 @default_value = 0.0;";
             
             //Debug.Log("Get Func" + query);
@@ -212,57 +210,57 @@ namespace Onthesys.WebBuild
             });
 
         }
-        IEnumerator GetCorrelationsFunc(Action<List<CorrelationModel>> callback)
-        {
-            var query = @$"exec GET_CORRELATIONS;";
+        //IEnumerator GetCorrelationsFunc(Action<List<CorrelationModel>> callback)
+        //{
+        //    var query = @$"exec GET_CORRELATIONS;";
 
-            yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
-            {
-                //Debug.Logr("GetMeasureHistoryFunc : " + result);
-                var wrapper = JsonUtility.FromJson<CorrelationModelList>(result);
-                callback(wrapper.items);
-            });
-        }
-        IEnumerator GetMeasureInferenceTimeRangeFunc(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
-        {
+        //    yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
+        //    {
+        //        //Debug.Logr("GetMeasureHistoryFunc : " + result);
+        //        var wrapper = JsonUtility.FromJson<CorrelationModelList>(result);
+        //        callback(wrapper.items);
+        //    });
+        //}
+        //IEnumerator GetMeasureInferenceTimeRangeFunc(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
+        //{
 
-            var query = @$"EXEC WEB_DP.dbo.GET_MEASURE_TIME_RANGE_SENSOR
-                @table_name = 'measure_inference',
-                @board_id = {boardId},
-                @sensor_id = {sensorId},
-                @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
-                @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
-                @element_count = {count},
-                @default_value = 0.0;
-            ";
+        //    var query = @$"EXEC WEB_DP.dbo.GET_MEASURE_TIME_RANGE_SENSOR
+        //        @table_name = 'measure_inference',
+        //        @board_id = {boardId},
+        //        @sensor_id = {sensorId},
+        //        @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
+        //        @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
+        //        @element_count = {count},
+        //        @default_value = 0.0;
+        //    ";
 
-            yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
-            {
-                //Debug.Logr("GetMeasureHistoryFunc : " + result);
-                var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
-                callback(wrapper.items);
-            });
-        }
-        IEnumerator GetMeasureDenoiseTimeRangeFunc(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
-        {
+        //    yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
+        //    {
+        //        //Debug.Logr("GetMeasureHistoryFunc : " + result);
+        //        var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
+        //        callback(wrapper.items);
+        //    });
+        //}
+        //IEnumerator GetMeasureDenoiseTimeRangeFunc(int boardId, int sensorId, DateTime fromDt, DateTime toDt, int count, Action<List<MeasureModel>> callback)
+        //{
 
-            var query = @$"EXEC WEB_DP.dbo.GET_MEASURE_TIME_RANGE_SENSOR 
-                @table_name = 'measure_denoise',
-                @board_id = {boardId},
-                @sensor_id = {sensorId},
-                @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
-                @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
-                @element_count = {count},
-                @default_value = 0.0;
-            ";
+        //    var query = @$"EXEC WEB_DP.dbo.GET_MEASURE_TIME_RANGE_SENSOR 
+        //        @table_name = 'measure_denoise',
+        //        @board_id = {boardId},
+        //        @sensor_id = {sensorId},
+        //        @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
+        //        @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
+        //        @element_count = {count},
+        //        @default_value = 0.0;
+        //    ";
 
-            yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
-            {
-                //Debug.Logr("GetMeasureHistoryFunc : " + result);
-                var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
-                callback(wrapper.items);
-            });
-        }
+        //    yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
+        //    {
+        //        //Debug.Logr("GetMeasureHistoryFunc : " + result);
+        //        var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
+        //        callback(wrapper.items);
+        //    });
+        //}
         IEnumerator GetSmsServiceListFunc(Action<List<SmsServiceModel>> callback)
         {
             var query = @"SELECT * FROM WEB_DP.dbo.sms_service";
@@ -327,7 +325,7 @@ namespace Onthesys.WebBuild
 
         }
         //수정 0609
-        IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
+       /* IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
         {
             foreach (var sensor in sensors)
             {
@@ -353,7 +351,7 @@ namespace Onthesys.WebBuild
             }
 
             callback(true, "임계값이 성공적으로 저장되었습니다.");
-        }
+        }*/
 
         #endregion
 
@@ -369,6 +367,7 @@ namespace Onthesys.WebBuild
 
 
         #endregion
+
         #region [API 요청 및 처리문]
 
         IEnumerator GetCertificationFunc(string password, Action<AuthTokenModel> callback)

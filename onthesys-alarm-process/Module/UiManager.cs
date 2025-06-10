@@ -20,25 +20,25 @@ namespace onthesys_alarm_process.Process
 
         protected override void OnInitiate()
         {
-            app.smsManager.OnAlarmOccured += alarm => 
+            //app.smsManager.OnAlarmOccured += alarm =>
+            //{
+            //    lock (buffer)
+            //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 알람 발생"));
+            //};
+            //app.smsManager.OnSmsSended += () =>
+            //{
+            //    lock (buffer)
+            //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] ") + "SMS 발송");
+            //};
+            app.dbManager.OnDataDownloaded += (upper, lower) =>
             {
                 lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 알람 발생"));
+                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 로드됨") + $"[Data] {upper.Count} & {lower.Count}개");
             };
-            app.smsManager.OnSmsSended += () => 
+            app.dbManager.OnDataUploaded += msg =>
             {
                 lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] SMS 발송"));
-            };
-            app.dbManager.OnDataDownloaded += datas => 
-            {
-                lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 로드됨") + $"[Data] { datas.Count}개");
-            };
-            app.dbManager.OnDataUploaded += msg => 
-            {
-                lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 업로드됨") + " - "+msg);
+                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 업로드됨") + " - " + msg);
             };
             app.filterManager.OnDataProcessed += datas =>
             {
@@ -51,12 +51,15 @@ namespace onthesys_alarm_process.Process
 
         Queue<string> buffer = new Queue<string>();
 
-        protected override void Process()
+        protected override Task Process()
         {
-            lock(buffer)
-                while(buffer.Count > 0)
+            lock (buffer)
+                while (buffer.Count > 0)
                     Console.WriteLine(buffer.Dequeue());
+
+            return Task.CompletedTask;
         }
+
 
 
     }

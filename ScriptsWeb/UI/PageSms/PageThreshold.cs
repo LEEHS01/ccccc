@@ -22,31 +22,18 @@ public class PageThreshold : MonoBehaviour
         btnSave = transform.Find("btnInput").GetComponent<Button>();
         btnSave.onClick.AddListener(OnClickSave);
 
-        UiManager.Instance.Register(UiEventType.Initiate, OnInitiate);
-        UiManager.Instance.Register(UiEventType.NavigateThreshold, OnNavigateThreshold);    // 임계값 설정 페이지 활성화
-        UiManager.Instance.Register(UiEventType.ResponseThresholdUpdate, OnResponseThresholdUpdate);    // 모든 ItemThreshold에게 센서 데이터 로드 지시
-        UiManager.Instance.Register(UiEventType.ChangeSensorData, OnSensorDataChanged);
+        UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
+        UiManager.Instance.Register(UiEventType.ResponseThresholdUpdate, OnResponseThresholdUpdate);    
 
         gameObject.SetActive(false);
     }
 
-    private void OnInitiate(object obj)
+    //0609 수정
+    private void OnNavigateSms(object obj)
     {
-        // 초기화 시에는 센서 데이터 변경 이벤트만 등록
-    }
+        if (obj is not Type type) return;
 
-    private void OnSensorDataChanged(object obj)
-    {
-        // 센서 데이터가 로드된 후에 UI 업데이트
-        if (gameObject.activeInHierarchy)
-        {
-            LoadThresholdItems();
-        }
-    }
-
-    private void OnNavigateThreshold(object obj)
-    {
-        gameObject.SetActive(true);
+        if (type != typeof(PageThreshold)) return;
 
         // 센서 데이터가 있으면 바로 로드
         if (modelProvider.GetSensors().Count > 0)
@@ -57,6 +44,7 @@ public class PageThreshold : MonoBehaviour
         {
             Debug.Log("센서 데이터 로딩 중... ChangeSensorData 이벤트 대기");
         }
+
     }
 
     private void OnResponseThresholdUpdate(object obj)
@@ -67,7 +55,7 @@ public class PageThreshold : MonoBehaviour
         {
             Debug.Log("임계값 저장 성공: " + message);
             // 성공 알림 TODO
-            gameObject.SetActive(false);
+            UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
         }
         else
         {
@@ -123,6 +111,6 @@ public class PageThreshold : MonoBehaviour
 
     void OnClickCancel()
     {
-        gameObject.SetActive(false);
+        UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
     }
 }

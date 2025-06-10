@@ -4,7 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace onthesys_alarm_process.Process
@@ -12,118 +15,186 @@ namespace onthesys_alarm_process.Process
     public class SmsManager : Manager
     {
         public event Action OnSmsSended;        //SMS 전송
-        public event Action<AlarmLogModel> OnAlarmOccured;     //알람 발생
-        public event Action<AlarmLogModel> OnAlarmSolved;     //알람 발생
+        public event Action<List<AlarmLogModel>, StatusType, StatusType> OnAlarmOccured;     //알람 발생
+        /// <summary>
+        /// 알람 해소 이벤트.
+        ///  List<AlarmLogModel>해소된  = 알람 목록
+        ///  StatusType from > StatusType to
+        /// </summary>
+        public event Action<List<AlarmLogModel>,StatusType, StatusType> OnAlarmSolved;     //알람 해소
         public event Action<List<MeasureModel>> OnSensorDataReceived;
+        public event Action<List<SmsServiceModel>> OnSmsChecked;
 
-        internal ISMSHandle smsHandle;
+        bool isCdmaOn = true; //CDMA 활성화 여부
+        ISmsHandle smsHandle;
 
-        public List<SensorModel> sensors = new List<SensorModel>();     //센서 제원 
-        public Dictionary<(int boardId, int sensorId), List<MeasureModel>> filteredDatas 
-            = new Dictionary<(int boardId, int sensorId), List<MeasureModel>>();  //필터링된 데이터
-        public List<AlarmLogModel> alarmLogs = new List<AlarmLogModel>();   //기존 알람
-        public List<SmsServiceModel> smsServices  = new List<SmsServiceModel>();    //SMS 서비스
+        List<SensorModel> sensors = new List<SensorModel>();     //센서 제원 
+        Dictionary<int, List<MeasureModel>> filteredDatas = new Dictionary<int, List<MeasureModel>>();  //sensorId에 따라 필터링된 데이터
+        List<AlarmLogModel> alarmLogs = new List<AlarmLogModel>();   //기존 알람
+        List<SmsServiceModel> smsServices  = new List<SmsServiceModel>();    //SMS 서비스
 
-        internal SmsManager(Application app, ISMSHandle smsHandle) : base(app)
+        internal SmsManager(Application app, ISmsHandle smsHandle) : base(app)
         {
             this.smsHandle = smsHandle;
             interval = 15000;
         }
+        protected override Task Process()
+        {
+            try
+            {
+                WaterQualityData();
+                AlarmProcess();
 
+            }
+            catch (Exception e) 
+            {
+                Console.WriteLine(e.Message, e.StackTrace);
+            }
+                //Thread.Sleep(100);
+            return Task.CompletedTask;
+        }
+
+
+        #region [이벤트]
         protected override void OnInitiate()
         {
-            app.dbManager.OnSensorsDownloaded += sensors => this.sensors = sensors;
+            app.dbManager.OnSensorsDownloaded += sensors => this.sensors = sensors.Where(s => s.board_id == 1 && s.sensor_id <= 3).ToList();
             app.dbManager.OnSensorsDownloaded += sensors =>
             {
-                if (!filteredDatas.ContainsKey((sensors.First().board_id, sensors.First().sensor_id)))
-                    filteredDatas.Add((sensors.First().board_id, sensors.First().sensor_id), new List<MeasureModel>());
+                sensors.ForEach(sensor =>
+                { 
+                    if (!filteredDatas.ContainsKey(sensor.sensor_id))
+                        filteredDatas.Add(sensor.sensor_id, new List<MeasureModel>());
+                });
             };
             app.dbManager.OnAlarmDownloaded += alarmLogs => this.alarmLogs = alarmLogs;
             app.dbManager.OnSmsServicesDownloaded += smsServices => this.smsServices = smsServices;
             app.filterManager.OnDataProcessed += OnDataProcessed;
             OnAlarmOccured += OnAlarmOccuredSendSms;
+            OnAlarmSolved += OnAlarmSolvedSendSms;
 
             base.OnInitiate();
         }
 
-        //이벤트 시, 데이터 수령
+
+        //데이터 처리 후, 데이터 수령
         private void OnDataProcessed(List<MeasureModel> list)
         {
             if (list.Count == 0) throw new Exception("OnDataProcessed - No data to process. data length is 0");
-            (int boardId, int sensorId) address = (list.First().board_id, list.First().sensor_id);
+            Console.WriteLine($"SmsManager - OnDataProcessed - Processed Data Recieved (sid : {list.First().sensor_id})({list.Count} ea)");
+            filteredDatas[list.First().sensor_id] = list;
+        }
+        //알람 발생 시, SMS 전송
+        void OnAlarmOccuredSendSms(List<AlarmLogModel> alarmLogs, StatusType from, StatusType to)
+        {
+            if (alarmLogs.Count == 0)
+            {
+                Console.WriteLine("OnAlarmOccured - No data to process. data is null");
+                return;
+            }
+            var alarm = alarmLogs.Last();
 
-            filteredDatas[address] = list;
+            //일단 상류만 가져올 듯
+            SensorModel sensor = sensors.FirstOrDefault(item =>  item.sensor_id == alarm.sensor_id);
+
+            //해당 센서의 알람인지?
+            List<SmsServiceModel> tServices = smsServices.Where(item => item.sensor_id == alarm.sensor_id).ToList();
+            //임계 등급 이상의 알람인지?
+            tServices = tServices.Where(item => item.GetAlarmLevel() <= alarm.GetAlarmLevel()).ToList();
+            //유효한 전화번호를 갖고 활성화된 상태인지?
+            tServices = tServices.Where(item => item.is_enabled && IsValidPhoneNumber(item.phone)).ToList();
+            //전화번호 추출
+            List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
+
+            float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
+
+            string groupMessage = $"[{sensor.sensor_name}] Status rise: {from} → {to} at {alarm.occured_time:HH:mm:ss}, over {threshold} {sensor.unit}";
+
+            smsHandle.SendSMSToList(phoneNumbers, groupMessage);
+            OnSmsSended?.Invoke();
         }
 
-        protected override void Process()
+        private void OnAlarmSolvedSendSms(List<AlarmLogModel> alarmLogs, StatusType from, StatusType to)
         {
+            if (alarmLogs.Count == 0)
+            {
+                Console.WriteLine("OnAlarmSolved - No data to process. data is null");
+                return;
+            }
+            var alarm = alarmLogs.Last();
+
+            //일단 상류만 가져올 듯
+            SensorModel sensor = sensors.FirstOrDefault(item => item.sensor_id == alarm.sensor_id);
+
+            //해당 센서의 알람인지?
+            List<SmsServiceModel> tServices = smsServices.Where(item => item.sensor_id == alarm.sensor_id).ToList();
+            //임계 등급 이상의 알람인지?
+            tServices = tServices.Where(item => item.GetAlarmLevel() <= alarm.GetAlarmLevel()).ToList();
+            //유효한 전화번호를 갖고 활성화된 상태인지?
+            tServices = tServices.Where(item => item.is_enabled && IsValidPhoneNumber(item.phone)).ToList();
+            //전화번호 추출
+            List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
+
+            float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
+            string groupMessage = $"[{sensor.sensor_name}] Status drop: {from} → {to} at {alarm.occured_time:HH:mm:ss}, below {threshold} {sensor.unit}";
+
+            smsHandle.SendSMSToList(phoneNumbers, groupMessage);
+            OnSmsSended?.Invoke();
+        }
+
+
+
+
+        bool IsValidPhoneNumber(string phone)
+        {
+            phone = phone.Replace("-", "");
+            phone = phone.Replace(".", "");
+            phone = phone.Replace(" ", "");
+            if (phone.All(char.IsDigit) && phone.Length == 11) 
+                return true;
+            
+            return false;
+        }
+
+        #endregion
+
+        #region [알람 제어]
+        private void AlarmProcess() 
+        {
+            if (!isCdmaOn) throw new Exception("SMS Manager - AlarmProcess - cdma is not ready");
+
+            foreach (var sensor in sensors)
+                if (filteredDatas[sensor.sensor_id].Count == 0) throw new Exception("SMS Manager - AlarmProcess - Data not yet provided");//데이터가 아직 준비되지 않음
+
             List<AlarmLogModel> newAlarmLogs = new List<AlarmLogModel>();
             foreach (var sensor in sensors)
             {
-                if (!sensor.isUsing || sensor.isFixing) continue;
-                
-                StatusType status = EstimateAlarms(sensor, filteredDatas[(sensor.board_id, sensor.sensor_id)]);
-                List<AlarmLogModel> logs = ValidateAlarms((sensor.board_id, sensor.sensor_id), status);
+                if (sensor.isFixing) continue;
+
+                    StatusType status = EstimateAlarms(sensor, filteredDatas[sensor.sensor_id]);
+                List<AlarmLogModel> logs = ValidateAlarms(sensor.sensor_id, status);
                 newAlarmLogs.AddRange(logs);
-                Console.WriteLine($"[SmsManager] - ({sensor.board_id},{sensor.sensor_id}) = {status.ToString()}");
+
+                Console.WriteLine($"[SmsManager] - ({sensor.sensor_name}) = {status.ToString()}");
             }
 
             this.alarmLogs = newAlarmLogs;
-
-           WaterQualityData();
+            smsServices.ForEach(sms => sms.checked_time = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd HH:mm:ss"));
+            OnSmsChecked?.Invoke(smsServices);
         }
-
-        // test
-        void WaterQualityData()
-        {
-            foreach (DEV_WQ_POS position in Enum.GetValues(typeof(DEV_WQ_POS)))
-            {
-                List<WQ_Item> data = new List<WQ_Item>();
-                if (smsHandle.SendGetCurrentValue(position, ref data))
-                {
-                    Console.WriteLine($"Water Quality Data - {position}: {data.Count} items");
-
-                    // WQ_Item → MeasureModel 변환
-                    var measureData = ConvertToMeasureModels(data, position);
-
-                    // DbManager로 이벤트 발생
-                    OnSensorDataReceived?.Invoke(measureData);
-                }
-            }
-        }
-
-        List<MeasureModel> ConvertToMeasureModels(List<WQ_Item> wqItems, DEV_WQ_POS position)
-        {
-            int boardId = position == DEV_WQ_POS.UPPER ? 1 : 2; //어찌될지 몰루?
-            var measureModels = new List<MeasureModel>();
-
-            for (int i = 0; i < wqItems.Count; i++) 
-            {
-                var wqItem = wqItems[i];
-                if (!wqItem.Timeout)
-                {
-                    measureModels.Add(new MeasureModel
-                    {
-                        board_id = boardId,
-                        sensor_id = i + 1, 
-                        measured_value = wqItem.PV,
-                        measured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
-                    });
-                }
-            }
-
-            return measureModels;
-        }
-
-
+        
         //센서의 데이터 > 센서의 현재 상태
-        StatusType EstimateAlarms(SensorModel sensor ,List<MeasureModel> data)
+        StatusType EstimateAlarms(SensorModel sensor, List<MeasureModel> data)
         {
-            //패딩이 포함되지 않는 위치를 골라 임계값으로 사용
-            float latestValue = data[data.Count - FilterManager.windowSize].measured_value;
-            if (latestValue > sensor.threshold_critical)
-                return StatusType.CRITICAL;
-            else if(latestValue > sensor.threshold_warning)
+            //---패딩의 영향을 받지 않아 외곡이 없는 지점을 선택---
+            //int tIdx = data.Count - 1/* - FilterManager.filterLatestIndex*/;
+            float latestValue = data.Last().measured_value;
+
+            Console.WriteLine($"[{sensor.sensor_name}] latestValue : " + latestValue);
+            //if (latestValue > sensor.threshold_critical)
+            //    return StatusType.CRITICAL;
+            //else
+            if(latestValue > sensor.threshold_warning)
                 return StatusType.WARNING;
             else if(latestValue > sensor.threshold_serious)
                 return StatusType.SERIOUS;
@@ -134,118 +205,166 @@ namespace onthesys_alarm_process.Process
         }
 
         //센서의 현재 상태 > 알람 발생?
-        List<AlarmLogModel> ValidateAlarms ((int boardId, int sensorId) address, StatusType status)
+        List<AlarmLogModel> ValidateAlarms (int sensorId, StatusType status)
         {
-            List<AlarmLogModel> alarmLogs = this.alarmLogs.Where(x => x.board_id == address.boardId && x.sensor_id == address.sensorId && x.solved_time == null).ToList();
+            List<AlarmLogModel> alarmLogs = this.alarmLogs.Where(x => x.sensor_id == sensorId && x.solved_time == null).ToList();
 
-            for (int i = 0; i < alarmLogs.Count; i++)
+            AlarmLogModel prevWarn = alarmLogs.Find(alarm => alarm.GetAlarmLevel() == StatusType.WARNING);
+            AlarmLogModel prevSeri = alarmLogs.Find(alarm => alarm.GetAlarmLevel() == StatusType.SERIOUS);
+
+            List<AlarmLogModel> items = null;
+            switch (status) 
             {
-                //변화 확인
-                AlarmLogModel alarmLog = alarmLogs[i];
-                if (alarmLog == null && status == StatusType.NORMAL) continue;
-                if (alarmLog != null && status == alarmLog.GetAlarmLevel()) continue;
-
-                //변화 발생 및 새로운 알람인지 확인
-                StatusType previousStatus = alarmLog.GetAlarmLevel();
-                bool isAlarmLevelUp = previousStatus < status;
-                bool isNewStatement = alarmLogs.Where(item => item.GetAlarmLevel() == status).Count() == 0;
-
-                //일림 상승에 대한 처리 : 새 알람을 추가
-                if (isAlarmLevelUp && isNewStatement)
-                {
-                    AlarmLogModel newAlarm = new AlarmLogModel()
+                case StatusType.NORMAL:
+                    if (prevSeri != null)
                     {
-                        alarm_id = -1,
-                        board_id = address.boardId,
-                        sensor_id = address.sensorId,
-                        alarm_level = status.ToStringAsStatus(),
-                        occured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                        solved_time = null,
-                    };
+                        prevSeri.solved_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    OnAlarmOccured?.Invoke(newAlarm);
+                        //WARNING > NORMAL
+                        if (prevWarn != null)
+                        {
+                            prevWarn.solved_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                            items = new List<AlarmLogModel>() { prevSeri, prevWarn };
+                            OnAlarmSolved?.Invoke(items, StatusType.WARNING, StatusType.NORMAL);
+                        }
+                        //SERIOUS > NORMAL
+                        else
+                        {
+                            items = new List<AlarmLogModel>() { prevSeri};
+                            OnAlarmSolved?.Invoke(items, StatusType.SERIOUS, StatusType.NORMAL);
+                        }
+                    }
+                break;
+                case StatusType.SERIOUS:
+                    //WARNING > SERIOUS
+                    if (prevWarn != null)
+                    {
+                        prevWarn.solved_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                        items = new List<AlarmLogModel>() { prevWarn };
+                        OnAlarmSolved?.Invoke(items, StatusType.WARNING, StatusType.SERIOUS);
+                    }
+                    //NORMAL > SERIOUS
+                    if (prevSeri == null)
+                    {
+                        AlarmLogModel newSeri = new AlarmLogModel()
+                        {
+                            alarm_id = -1,
+                            sensor_id = sensorId,
+                            alarm_level = StatusType.SERIOUS.ToStringAsStatus(),
+                            occured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                            solved_time = null,
+                        };
 
-                    alarmLogs.Add(newAlarm);
+                        items = new List<AlarmLogModel>() { newSeri };
+                        alarmLogs.Add(newSeri);
+                        OnAlarmOccured?.Invoke(items, StatusType.NORMAL, StatusType.SERIOUS);
+                    }
+                    break;
+                case StatusType.WARNING:
 
-                }
+                    if (prevWarn == null)
+                    {
+                        AlarmLogModel newWarn = new AlarmLogModel()
+                        {
+                            alarm_id = -1,
+                            sensor_id = sensorId,
+                            alarm_level = StatusType.WARNING.ToStringAsStatus(),
+                            occured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                            solved_time = null,
+                        };
 
-                //알람 해제에 대한 처리 : 해소된 알람을 수정
-                if (!isAlarmLevelUp && previousStatus > status)
-                {
-                    alarmLog.solved_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                    OnAlarmSolved?.Invoke(alarmLog);
-                }
+                        //NORMAL > WARNING
+                        if (prevSeri == null)
+                        {
+                            AlarmLogModel newSeri = new AlarmLogModel()
+                            {
+                                alarm_id = -1,
+                                sensor_id = sensorId,
+                                alarm_level = StatusType.SERIOUS.ToStringAsStatus(),
+                                occured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                solved_time = null,
+                            };
+                            items = new List<AlarmLogModel>() { newSeri, newWarn };
+                            alarmLogs.Add(newWarn);
+                            alarmLogs.Add(newSeri);
+
+                            OnAlarmOccured?.Invoke(items, StatusType.NORMAL, StatusType.WARNING);
+                        }
+                        //SERIOUS > WARNING
+                        else
+                        {
+                            items = new List<AlarmLogModel>() { newWarn };
+                            alarmLogs.Add(newWarn);
+                            OnAlarmOccured?.Invoke(items, StatusType.SERIOUS, StatusType.WARNING);
+                        }
+                    }
+                    break;
+                default:
+                    Console.WriteLine("ValidateAlarms - 예상 범위 밖의 인자가 제시됐습니다.처리 할 수 없는 알람 유형입니다");
+                    break;
             }
 
-            if (alarmLogs.Count == 0 && status != StatusType.NORMAL)
-            {
-                AlarmLogModel newAlarm = new AlarmLogModel()
-                {
-                    alarm_id = -1,
-                    board_id = address.boardId,
-                    sensor_id = address.sensorId,
-                    alarm_level = status.ToStringAsStatus(),
-                    occured_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                    solved_time = null,
-                };
-
-                OnAlarmOccured?.Invoke(newAlarm);
-
-                alarmLogs.Add(newAlarm);
-            }
 
             return alarmLogs;
         }
+        #endregion
 
-        //알람 발생 시, SMS 전송
-        void OnAlarmOccuredSendSms(AlarmLogModel alarm)
+        #region [데이터 수신]
+        //수질 데이터 수신 및 처리
+        void WaterQualityData()
         {
-            Console.WriteLine($"{alarm.alarm_id}\t {alarm.occured_time:yyyy-MM-dd HH:mm:ss}\t {alarm.GetAlarmLevel().ToStringAsStatus()}\t{alarm.board_id}-{alarm.sensor_id}");
-
-            if (alarm == null) throw new Exception("OnAlarmOccured - No data to process. data length is 0");
-
-            SensorModel sensor = sensors.FirstOrDefault(item => item.board_id == alarm.board_id && item.sensor_id == alarm.sensor_id);
-
-            List<SmsServiceModel> tServices = smsServices.Where(item => item.GetAlarmLevel() <= alarm.GetAlarmLevel()).ToList();
-
-            if (tServices.Count == 0) {
-                Console.WriteLine("OnAlarmOccured - No SMS service found.");
-                return; 
-            }
-
-            if (tServices.Count == 1)
+            foreach (DEV_WQ_POS position in Enum.GetValues(typeof(DEV_WQ_POS)))
             {
-                // 한 명일 때
-                var smsService = tServices[0];
-                string personalMessage = $"[{alarm.alarm_level}] {smsService.name}님, {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
-                if (smsService.phone == null) throw new Exception("OnAlarmOccured - No phone number found.");
-                smsHandle.SendSMSToOne(smsService.phone, personalMessage);
-                //OnSmsSended?.Invoke();
-            }
-            else
-            {
-                // 여러 명일 때
-                foreach (var smsService in tServices)
+                List<WQ_Item> data = new List<WQ_Item>();
+
+                //아마 동기 방식으로 작동하는 것으로 보임
+                if (smsHandle.SendGetCurrentValue(position, ref data))
                 {
-                    if (smsService.phone == null) throw new Exception("OnAlarmOccured - No phone number found.");
-                }
+                    Console.WriteLine($"Water Quality Data - {position}: {data.Count} items");
 
-                List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
-                string groupMessage = $"[{alarm.alarm_level}] {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
-                smsHandle.SendSMSToList(phoneNumbers, groupMessage);
-                //OnSmsSended?.Invoke();
+                    //TODO CDMA 활성화 여부를 결정하는 코드
+                    //isCdmaOn = data[0];
+
+                    if (isCdmaOn == false) continue;
+
+                    // WQ_Item → MeasureModel 변환
+                    var measureData = ConvertToMeasureModels(data, position, DateTime.Now);
+
+                    // DbManager로 이벤트 발생
+                    OnSensorDataReceived?.Invoke(measureData);
+                }
+                else
+                    Console.WriteLine($"Water Quality Data - {position}: Failed to get data from CDMA!");
+
+            }
+            Console.WriteLine($"Water Quality Data - gethering ends");
+        }
+        // WQ_Item 리스트를 MeasureModel 리스트로 변환
+        List<MeasureModel> ConvertToMeasureModels(List<WQ_Item> wqItems, DEV_WQ_POS position, DateTime dateTime)
+        {
+            int boardId = position == DEV_WQ_POS.UPPER ? 1 : 2;
+            var measureModels = new List<MeasureModel>();
+
+            for (int i = 0; i < wqItems.Count; i++)
+            {
+                var wqItem = wqItems[i];
+                if (!wqItem.Timeout)
+                {
+                    measureModels.Add(new MeasureModel
+                    {
+                        board_id = boardId,
+                        sensor_id = i + 1,
+                        measured_value = wqItem.PV,
+                        measured_time = dateTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    });
+                }
+                else
+                    Console.WriteLine($"Water Quality Data - {position}-{i + 1}: Timeout error from CDMA!");
             }
 
-            /*foreach (var smsService in tServices)
-            {
-                string message = $"[{alarm.alarm_level}] {smsService.name}님, {alarm.occured_time} 부로 {sensor.sensor_name}에 알람 발생했습니다.";
-
-                if (smsService.phone == null) throw new Exception("OnAlarmOccured - No phone number found.");
-
-                smsHandle.SendSMSToOne(smsService.phone, message);
-                //OnSmsSended?.Invoke();
-            }*/
+            return measureModels;
         }
+        #endregion
 
     }
 }

@@ -19,13 +19,15 @@ public class ItemSmsManage : MonoBehaviour
 
     Button btnItem;
     Toggle tglIsEnabled;
-    TMP_Text lblName, lblPhone, lblthreshold;
+    TMP_Text lblName, lblPhone,lblSensor,lblLevel, lblThreshold;
 
     private void Start()
     {
-        lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
-        lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
-        lblthreshold = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();     //임계값
+        lblName = transform.Find("txtName").GetComponentInChildren<TMP_Text>();
+        lblPhone = transform.Find("txtPhone").GetComponentInChildren<TMP_Text>();
+        lblSensor = transform.Find("txtSensor").GetComponentInChildren<TMP_Text>();
+        lblLevel = transform.Find("txtLevel").GetComponentInChildren<TMP_Text>();
+        lblThreshold = transform.Find("txtThreshold").GetComponentInChildren<TMP_Text>();
         tglIsEnabled = transform.Find("ToggleOnOff").GetComponent<Toggle>();
 
         btnItem = GetComponent<Button>();
@@ -42,18 +44,35 @@ public class ItemSmsManage : MonoBehaviour
         lblName.text = data.name;
         lblPhone.text = data.phone;
 
-        //0605 수정사항
-        string thresholdValue = GetThresholdValue(data.alarm_level);
-        lblthreshold.text = thresholdValue;
+        // 수정: 센서 표시 방식 변경
+        string sensorInfo = GetSensorDisplayText(data.sensor_id);
+        lblSensor.text = sensorInfo;
+
+        // 수정: 레벨과 임계값 분리 표시
+        lblLevel.text = GetLevelDisplayText(data.alarm_level);
+        lblThreshold.text = GetThresholdDisplayValue(data.alarm_level, data.sensor_id);
 
         tglIsEnabled.SetIsOnWithoutNotify(data.is_enabled);
         tglIsEnabled.onValueChanged.AddListener(OnToggleEnabled);
     }
 
-    //0605 수정사항
-    private string GetThresholdValue(string alarmLevel)
+    //0609
+    private string GetSensorDisplayText(int sensorId)
     {
-        var sensor = UiManager.Instance.modelProvider.GetSensor(data.board_id, data.sensor_id);
+        var sensor = UiManager.Instance.modelProvider.GetSensors()
+            .FirstOrDefault(s => s.sensor_id == sensorId);
+
+        if (sensor == null)
+            return $"센서{sensorId}";
+
+        return $"{sensor.sensor_name}";
+    }
+    //0609
+    private string GetThresholdDisplayValue(string alarmLevel, int sensorId)
+    {
+        var sensor = UiManager.Instance.modelProvider.GetSensors()
+            .FirstOrDefault(s => s.sensor_id == sensorId);
+
         if (sensor == null) return "-";
 
         return alarmLevel switch
@@ -63,11 +82,37 @@ public class ItemSmsManage : MonoBehaviour
             _ => "-"
         };
     }
-
+    //0609
+    private string GetLevelDisplayText(string alarmLevel)
+    {
+        return alarmLevel switch
+        {
+            "Warning" => "경보",
+            "Serious" => "경계",
+            _ => "-"
+        };
+    }
+    //0609 수정
     private void OnToggleEnabled(bool isEnabled)
     {
         data.is_enabled = isEnabled;
         UiManager.Instance.Invoke(UiEventType.RequestSmsUpdate, (data.service_id, data));
+
+       /* data.is_enabled = isEnabled;
+
+        //변경된 데이터만 새로 생성해서 전송
+        var updatedData = new SmsServiceModel()
+        {
+            service_id = data.service_id,
+            name = data.name,
+            phone = data.phone,
+            sensor_id = data.sensor_id,
+            alarm_level = data.alarm_level,
+            is_enabled = isEnabled,  // 변경된 값
+            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+        };
+
+        UiManager.Instance.Invoke(UiEventType.RequestSmsUpdate, (data.service_id, updatedData));*/
     }
 
     public void OnClick()

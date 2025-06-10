@@ -49,7 +49,7 @@ public class PageSmsUpdate : MonoBehaviour
     //0605 수정사항
     private void InitializeDropdowns()
     {
-        ddlSensorselect.options.Clear();
+ 
         /*//임시 더미센서데이터
         ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서1 (1-1)"));
         ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서2 (1-2)"));
@@ -59,28 +59,14 @@ public class PageSmsUpdate : MonoBehaviour
         var sensors = modelProvider.GetSensors();
         foreach (var sensor in sensors)
         {
-            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name} ({sensor.board_id}-{sensor.sensor_id})"));
+            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name} (센서{sensor.sensor_id})"));
         }
 
-        ddlThresholdselect.options.Clear();
+        ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경계"));    // Serious
         ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경보"));    // Warning
-        ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경계"));    // Serious  
     }
 
-    private void SetDropdownValues()
-    {
-        var sensors = modelProvider.GetSensors();
-        int sensorIndex = sensors.FindIndex(s => s.board_id == data.board_id && s.sensor_id == data.sensor_id);
-        if (sensorIndex >= 0) ddlSensorselect.SetValueWithoutNotify(sensorIndex);
-
-        int thresholdIndex = data.alarm_level switch
-        {
-            "WARNING" => 0,
-            "SERIOUS" => 1,
-            _ => 0
-        };
-        ddlThresholdselect.SetValueWithoutNotify(thresholdIndex);
-    }
+   
 
     private void OnNavigateSms(object obj)
     {
@@ -88,12 +74,25 @@ public class PageSmsUpdate : MonoBehaviour
 
         this.data = modelProvider.GetSmsServiceById(serviceId);
 
-        InitializeDropdowns();      //0605 수정
-
         txbName.SetTextWithoutNotify(data.name);
         txbPhoneNumber.SetTextWithoutNotify(data.phone);
 
         SetDropdownValues();
+    }
+
+    private void SetDropdownValues()
+    {
+        var sensors = modelProvider.GetSensors();
+        int sensorIndex = sensors.FindIndex(s => s.sensor_id == data.sensor_id);
+        if (sensorIndex >= 0) ddlSensorselect.SetValueWithoutNotify(sensorIndex);
+
+        int thresholdIndex = data.alarm_level switch
+        {
+            "Warning" => 0,
+            "Serious" => 1,
+            _ => 0
+        };
+        ddlThresholdselect.SetValueWithoutNotify(thresholdIndex);
     }
 
     private void OnResponseSmsUpdate(object obj)
@@ -138,7 +137,6 @@ public class PageSmsUpdate : MonoBehaviour
             name = txbName.text,
             phone = txbPhoneNumber.text,
             is_enabled = data.is_enabled,                    //0605 isEnabled → is_enabled
-            board_id = selectedSensor.board_id,              //0605 수정
             sensor_id = selectedSensor.sensor_id,            //0605 수정
             checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // 0605 수정
         }));

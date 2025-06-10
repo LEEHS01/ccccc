@@ -2,7 +2,7 @@
 
 
 // Unity WebGL 빌드 폴더 경로 지정
-exports.buildPath = 'C:\\Users\\onthesys\\Downloads\\BuildWeb_250508_1628';
+exports.buildPath = 'C:\\Users\\onthesys\\Downloads\\BuildWeb_250604_0941';
 
 // SQL Server 연결 정보
 exports.dbConfig = {
@@ -16,3 +16,5 @@ exports.dbConfig = {
         trustServerCertificate: true
     }
 };
+
+exports.managerPassword = 'Onthesys@12'

@@ -20,14 +20,14 @@ namespace Assets.ScriptsWeb.UI
 
         //Components
         //List<Button> btnSensorList;
-        List<Button> btnMonthList;
+        List<Button> btnTimespanList;
         (TMP_InputField from, TMP_InputField to) txbDatetime;
         Button btnConfirm;
         (TMP_Text max, TMP_Text min, TMP_Text avg, TMP_Text std) lblStats;
 
         //Data
         DateTime dtFrom, dtTo;
-        (int boardId, int sensorId)? sensorAddress = (1,1);
+        int? sensorId = 1;
 
         //Func
         public DateTime DatetimeFrom
@@ -70,21 +70,21 @@ namespace Assets.ScriptsWeb.UI
         {
             Transform pnl = transform.Find("SearchPanel");
 
-            btnMonthList = pnl.Find("btnSerchPanel").GetComponentsInChildren<Button>().ToList();
-            txbDatetime = (
-                    pnl.Find("pnlDatetimeRange").Find("txbDatetimeFrom").GetComponent<TMP_InputField>(),
-                    pnl.Find("pnlDatetimeRange").Find("txbDatetimeTo").GetComponent<TMP_InputField>()
-                );
-            //btnSensorList = transform.Find("pnlBtnsSensor").GetComponentsInChildren<Button>().ToList();
-            btnConfirm = pnl.Find("pnlDatetimeRange").Find("Button").GetComponent<Button>();
-
-
             lblStats = (
                 pnl.Find("lbShowPanel").Find("LbMax").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
                 pnl.Find("lbShowPanel").Find("LbMin").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
                 pnl.Find("lbShowPanel 2").Find("LbAvg").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
                 pnl.Find("lbShowPanel 2").Find("LbDeviation").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>()
             );
+
+            btnTimespanList = transform.parent.parent.Find("btnCon").GetComponentsInChildren<Button>().ToList();
+            txbDatetime = (
+                    transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeFrom").GetComponent<TMP_InputField>(),
+                    transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeTo").GetComponent<TMP_InputField>()
+                );
+            //btnSensorList = transform.Find("pnlBtnsSensor").GetComponentsInChildren<Button>().ToList();
+            btnConfirm = transform.parent.parent.Find("pnlDatetimeRange").Find("Button").GetComponent<Button>();
+
 
         }
 
@@ -98,14 +98,9 @@ namespace Assets.ScriptsWeb.UI
             txbDatetime.to.onEndEdit.AddListener(value => OnEndEditDateTime(false, value));
             txbDatetime.to.text = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
 
-            foreach(var item in btnMonthList)
-                item.onClick.AddListener(() => OnClickTimespan(btnMonthList.IndexOf(item)));
+            foreach(var item in btnTimespanList)
+                item.onClick.AddListener(() => OnClickTimespan(btnTimespanList.IndexOf(item)));
 
-            //btnSensorList.ForEach(item =>
-            //{
-            //    item.onClick.AddListener(() => OnClickSensor(item));
-            //});
-            //btnSensorList.First().onClick.Invoke();
 
             btnConfirm.onClick.AddListener(OnClickSearch);
 
@@ -128,10 +123,10 @@ namespace Assets.ScriptsWeb.UI
 
         private void OnSelectSensorWithinTab(object obj)
         {
-            Debug.Log("OnSelectSensorWithinTab try");
-            if (obj is not (int boardId, int sensorId)) return;
-            sensorAddress = (boardId, sensorId);
-            Debug.Log("OnSelectSensorWithinTab suc");
+            //Debug.Log("OnSelectSensorWithinTab try");
+            if (obj is not int sensorId) return;
+            this.sensorId = sensorId;
+            //Debug.Log("OnSelectSensorWithinTab suc");
         }
         #endregion
 
@@ -187,31 +182,27 @@ namespace Assets.ScriptsWeb.UI
         private void OnClickTimespan(int idxOfButton)
         {
             //idxOfButton
-            //0 = 저번주, 1 이번주, 2 저번달 , 3 이번달
+            //0,1,2... 3시간 하루 1주 보름 1달 1분기
 
             TimeSpan timeSpan;// = new TimeSpan(7, 0, 0, 0);
-            TimeSpan rightMargin;// = new TimeSpan(7, 0, 0, 0);
+            TimeSpan rightMargin = new TimeSpan(0,0,0,0);// = new TimeSpan(7, 0, 0, 0);
 
             switch (idxOfButton)
             {
                 case 0:
-                    timeSpan = new TimeSpan(7, 0, 0, 0);
-                    rightMargin = new TimeSpan(7, 0, 0, 0);
+                    timeSpan = new TimeSpan(0, 0, 0, 0);
                     break;
-
                 case 1:
                     timeSpan = new TimeSpan(7, 0, 0, 0);
-                    rightMargin = new TimeSpan(0, 0, 0, 0);
                     break;
-
                 case 2:
-                    timeSpan = new TimeSpan(30, 0, 0, 0);
-                    rightMargin = new TimeSpan(30, 0, 0, 0);
+                    timeSpan = new TimeSpan(15, 0, 0, 0);
                     break;
-
                 case 3:
                     timeSpan = new TimeSpan(30, 0, 0, 0);
-                    rightMargin = new TimeSpan(0, 0, 0, 0);
+                    break;
+                case 4:
+                    timeSpan = new TimeSpan(90, 0, 0, 0);
                     break;
 
                 default: throw new Exception("사전에 정의되지 않은 버튼 인덱스가 입력되었습니다." + idxOfButton);
@@ -219,8 +210,11 @@ namespace Assets.ScriptsWeb.UI
 
             DateTime now = DateTime.UtcNow.AddHours(9);
 
-            txbDatetime.from.text = (now - rightMargin - timeSpan).ToString("yyyy-MM-dd");
-            txbDatetime.to.text = (now - rightMargin).ToString("yyyy-MM-dd");
+            //txbDatetime.from.text = (now - rightMargin - timeSpan).ToString("yyyy-MM-dd");
+            //txbDatetime.to.text = (now - rightMargin).ToString("yyyy-MM-dd");
+
+            DatetimeFrom = now - rightMargin - timeSpan;
+            DateTimeTo = now - rightMargin;
         }
 
         private void OnClickSensor(Button button)
@@ -235,9 +229,9 @@ namespace Assets.ScriptsWeb.UI
 
         private void OnClickSearch()
         {
-            if (!sensorAddress.HasValue) throw new Exception("기록을 조회하기위한 센서가 선택되지 않았습니다.");
+            if (!sensorId.HasValue) throw new Exception("기록을 조회하기위한 센서가 선택되지 않았습니다.");
 
-            UiManager.Instance.Invoke(UiEventType.RequestSearchHistory, (sensorAddress.Value.boardId, sensorAddress.Value.sensorId, dtFrom, dtTo));
+            UiManager.Instance.Invoke(UiEventType.RequestSearchHistory, (sensorId.Value, dtFrom, dtTo));
         }
 
         #endregion

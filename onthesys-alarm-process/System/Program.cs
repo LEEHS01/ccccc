@@ -6,6 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace onthesys_alarm_process
-{
+{ 
     class Program { static void Main() => new Application().AwaitQuit(); }
 }

@@ -23,10 +23,6 @@ public class ItemThreshold : MonoBehaviour
         lblSensorName = transform.Find("txtSensorname").GetComponent<TMP_Text>();
         txbWarningValue = transform.Find("InputWarningvalue").GetComponent<TMP_InputField>();
         txbSeriousValue = transform.Find("InputSeriousvalue").GetComponent<TMP_InputField>();
-
-        // 실시간 검증 이벤트 등록(지워도됨)
-        txbWarningValue.onValueChanged.AddListener(_ => OnWarningValueChanged());
-        txbSeriousValue.onValueChanged.AddListener(_ => OnSeriousValueChanged());
     }
 
     // 지정된 sensorId로 데이터 로드
@@ -85,7 +81,6 @@ public class ItemThreshold : MonoBehaviour
                 sensor_name = sensorData.sensor_name,
                 threshold_warning = warningValue,
                 threshold_serious = seriousValue,
-                //threshold_critical = sensorData.threshold_critical, //이거 있는거 맞나요?erd사진에는 있긴하던데
                 is_using = sensorData.is_using,
                 is_fixing = sensorData.is_fixing
             };
@@ -96,31 +91,6 @@ public class ItemThreshold : MonoBehaviour
         {
             Debug.LogWarning($"[{sensorData.sensor_name}] 올바른 숫자를 입력해주세요.");
             return null;
-        }
-    }
-
-    // 입력값 실시간 검증
-    public void OnWarningValueChanged()
-    {
-        if (float.TryParse(txbWarningValue.text, out float warningValue) &&
-            float.TryParse(txbSeriousValue.text, out float seriousValue))
-        {
-            if (seriousValue >= warningValue)
-            {
-                txbSeriousValue.text = (warningValue - 1).ToString("F1");
-            }
-        }
-    }
-
-    public void OnSeriousValueChanged()
-    {
-        if (float.TryParse(txbWarningValue.text, out float warningValue) &&
-            float.TryParse(txbSeriousValue.text, out float seriousValue))
-        {
-            if (seriousValue >= warningValue)
-            {
-                txbWarningValue.text = (seriousValue + 1).ToString("F1");
-            }
         }
     }
 }

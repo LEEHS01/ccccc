@@ -9,19 +9,20 @@ using System.Threading.Tasks;
 
 namespace onthesys_alarm_process.Process
 {
+
+
+
     public class FilterManager : Manager
     {
-
-        public const int windowSize = 11; // 필터 윈도우 크기
-        public static int thresholdIndex => (windowSize-1)/2; // 임계값 인덱스 (윈도우 크기 / 2, 홀수여야 함)
-
+        const int winSize = 11;
+        public static int filterLatestIndex = (winSize - 1) / 2;
         public event Action<List<MeasureModel>> OnDataProcessed;    //데이터 처리 종료
 
-        private FirFilter fir;
+        //private FirFilter fir;
 
         public FilterManager(Application app) : base(app) 
         {
-            fir = new FirFilter(windowSize, 20f, 120);
+            fir = new FirFilter(winSize, 20f, 120);
         }
 
         protected override void OnInitiate()
@@ -30,39 +31,63 @@ namespace onthesys_alarm_process.Process
             base.OnInitiate();
         }
 
-        protected override void Process() { }
+        protected override Task Process() => Task.CompletedTask;
 
-        void OnDataDownloaded(List<MeasureModel> datas)
+        void OnDataDownloaded(List<MeasureModel> upperData, List<MeasureModel> lowerData)
         {
-            float[] input = datas.Select(d => d.measured_value).ToArray();
-            float[] output = fir.Apply(input);
+            //추출
+            List<float> upperInput = upperData.Select(d => d.measured_value).ToList();
+            List<float> lowerInput = lowerData.Select(d => d.measured_value).ToList();
+
+            if (upperInput.Count != lowerInput.Count) 
+            {
+                Console.WriteLine($"[FilterManager] Data count mismatch: Upper({upperInput.Count}) != Lower({lowerInput.Count})");
+                return;
+            }
+
+            if(upperInput.Last() * lowerInput.Last() == 0f)
+            {
+                Console.WriteLine("[FilterManager] upper or lower Value is 0f! it has possibility to data not defined. so, put a moratorium on decise alarm.");
+                return;
+            }
+
+
+            //차 계산 한쪽이 0이라면 데이터를 읽어오는데 실패한 것이므로 -1로 처리해 알람 처리를 방지
+            List<float> diff = upperInput
+                .Zip(lowerInput, (u, l) => l - u)
+                .ToList();
+
+            // FIR 필터 적용
+            //List<float> output = fir.ApplyFilter(diff);
             //Console.WriteLine("Raw Data: " + string.Join(", ", input));
             //Console.WriteLine("Filtered Data: " + string.Join(", ", output));
 
+            // 결과 모델 생성
             List<MeasureModel> outputModels = new List<MeasureModel>();
-            for (int i = 0; i < output.Length; i++) 
+            for (int i = 0; i < diff.Count; i++) 
             {
-                var inputModel = datas[i];
+                MeasureModel inputModel = upperData[i];
                 var outputModel = new MeasureModel()
                 {
                     sensor_id = inputModel.sensor_id,
-                    board_id =  inputModel.board_id,
-                    measured_value = output[i],
+                    board_id =  inputModel.board_id,    //사실 상 의미 없는 값
+                    measured_value = diff[i],
                     measured_time = inputModel.measured_time,
                 };
                 outputModels.Add(outputModel);
             }
 
-            outputModels.ForEach(model => {
-                string dt = $"{model.MeasuredTime:yyyy-MM-dd HH:mm:ss}";
-                model.measured_time = dt.Substring(0, dt.Length - 1) + "0";
-            });
-            var deduplicated = outputModels
-                .GroupBy(m => m.measured_time + m.sensor_id + m.board_id )
-                .Select(g => g.First())
-                .ToList();
+            //outputModels.ForEach(model => {
+            //    string dt = $"{model.MeasuredTime:yyyy-MM-dd HH:mm:ss}";
+            //    model.measured_time = dt.Substring(0, dt.Length - 1) + "0";
+            //});
+            //var deduplicated = outputModels
+            //    .GroupBy(m => m.measured_time + m.sensor_id + m.board_id )
+            //    .Select(g => g.First())
+            //    .ToList();
 
-            OnDataProcessed.Invoke(outputModels);
+            //반환
+            OnDataProcessed?.Invoke(outputModels);
         }
 
     }

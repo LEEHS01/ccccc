@@ -16,12 +16,12 @@ public class ItemSmsDelete : MonoBehaviour
 
     Toggle tglIsChecked;
 
-    TMP_Text lblName, lblPhone, lblthreshold;   //임계값
+    TMP_Text lblName, lblPhone, lblSensor;   //임계값
     private void Start()
     {
         lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
         lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
-        lblthreshold = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>(); //임계값
+        lblSensor = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>(); //임계값
         tglIsChecked = transform.Find("Toggle").GetComponent<Toggle>();
     }
 
@@ -34,26 +34,22 @@ public class ItemSmsDelete : MonoBehaviour
         lblName.text = data.name;
         lblPhone.text = data.phone;
 
-        //0605 수정사항
-        string thresholdValue = GetThresholdValue(data.alarm_level);
-        lblthreshold.text = thresholdValue;
+        string sensorName = GetSensorDisplayText(data.sensor_id);
+        lblSensor.text = sensorName;
 
         tglIsChecked.onValueChanged.AddListener(OnToggleEnabled);
         tglIsChecked.isOn = false;
     }
 
-    //0605 수정사항
-    private string GetThresholdValue(string alarmLevel)
+    private string GetSensorDisplayText(int sensorId)
     {
-        var sensor = UiManager.Instance.modelProvider.GetSensor(data.board_id, data.sensor_id);
-        if (sensor == null) return "-";
+        var sensor = UiManager.Instance.modelProvider.GetSensors()
+            .FirstOrDefault(s => s.sensor_id == sensorId);
 
-        return alarmLevel switch
-        {
-            "Warning" => sensor.threshold_warning.ToString("F1"),
-            "Serious" => sensor.threshold_serious.ToString("F1"),
-            _ => "-"
-        };
+        if (sensor == null)
+            return $"센서{sensorId}";
+
+        return $"{sensor.sensor_name}"; 
     }
 
     void OnToggleEnabled(bool isChecked) => this.isChecked = isChecked;

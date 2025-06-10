@@ -59,7 +59,7 @@ namespace Onthesys.WebBuild
 
             GetComponentInParent<Button>().onClick.AddListener(() =>
             {
-                UiManager.Instance.Invoke(UiEventType.SelectSensorWithinTab, (boardId, sensorId));
+                UiManager.Instance.Invoke(UiEventType.SelectSensorWithinTab, sensorId);
             });
         }
 

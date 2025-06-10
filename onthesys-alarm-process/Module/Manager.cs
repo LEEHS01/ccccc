@@ -1,31 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace onthesys_alarm_process.Process
 {
-    public abstract class Manager
+    public abstract class Manager : IDisposable
     {
-        /// <summary>
-        /// Process() 반복 주기
-        /// </summary>
-        protected int interval = 1000; // 1초
+        protected int interval = 1000; // ms 단위 주기
+        protected readonly Application app;
 
-        /// <summary>
-        /// 스레드 반복 여부
-        /// </summary>
-        protected bool isRunning = true;
-        /// <summary>
-        /// 스레드 객체
-        /// </summary>
-        protected Thread thread;
-        /// <summary>
-        /// Application 객체
-        /// </summary>
-        protected Application app;
+        private CancellationTokenSource cts;
+        private Task loopTask;
 
         internal Manager(Application app)
         {
@@ -33,34 +18,46 @@ namespace onthesys_alarm_process.Process
             app.OnInitiating += OnInitiate;
         }
 
-        protected virtual void OnInitiate() 
+        protected virtual void OnInitiate()
         {
-            thread = new Thread(ProcessFunc);
-            thread.IsBackground = true;
-            thread.Start();
+            cts = new CancellationTokenSource();
+            loopTask = Task.Run(() => ProcessLoopAsync(cts.Token));
         }
 
-        private void ProcessFunc()
+        private async Task ProcessLoopAsync(CancellationToken token)
         {
-            while (isRunning) 
+            try
             {
-                Thread.Sleep(interval);
-                Process();
+                while (!token.IsCancellationRequested)
+                {
+                    await Task.Delay(interval, token);
+                    await Process(); // async가 아니면 Task.Run(() => Process())로 래핑
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // 정상 종료
+            }
+            catch (Exception ex)
+            {
+                // 로깅 또는 예외처리
             }
         }
 
-        /// <summary>
-        /// 매니저 객체가 주기적으로 반복할 함수.
-        /// </summary>
-        protected abstract void Process();
+        protected abstract Task Process();
 
-        /// <summary>
-        /// Application에 종료 요청을 보냄.
-        /// </summary>
         public void Quit()
         {
             app.IsQuiting = true;
-            isRunning = false;
+            cts?.Cancel();
+        }
+
+        public void Dispose()
+        {
+            Quit();
+            loopTask?.Wait(); // 안전하게 종료 기다림
+            cts?.Dispose();
+            app.OnInitiating -= OnInitiate;
         }
     }
 }

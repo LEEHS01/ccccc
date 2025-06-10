@@ -99,13 +99,13 @@ namespace Onthesys.WebBuild
         ChangeTrendLineHistory,
         RequestSearchHistory,
 
-        //추론 조회 관련
-        ChangeTrendLineInference,
-        RequestSearchInference,
+        ////추론 조회 관련
+        //ChangeTrendLineInference,
+        //RequestSearchInference,
         
-        //경향 조회 관련
-        ChangeTrendLineDenoised,
-        RequestSearchDenoised,
+        ////경향 조회 관련
+        //ChangeTrendLineDenoised,
+        //RequestSearchDenoised,
 
         //탭 내 센서 선택
         SelectSensorWithinTab,
@@ -116,7 +116,7 @@ namespace Onthesys.WebBuild
         //페이지 이동
         NavigateSms,
         NavigateMain,
-        NavigateThreshold,
+
 
         //인스펙터 할당 및 해제
         InspectorApply,

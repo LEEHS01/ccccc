@@ -16,6 +16,10 @@ namespace Onthesys.WebBuild
         public bool is_enabled;
         //public bool isEnabled => is_enabled == 1;
         public string alarm_level;
+        public string checked_time; //최근 확인 시간
+        public DateTime CheckedTime => DateTime.Parse(checked_time);
+        public int board_id;
+        public int sensor_id;
     }
 
     [System.Serializable]

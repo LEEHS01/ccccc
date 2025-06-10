@@ -25,6 +25,16 @@ namespace Onthesys.WebBuild
                     return StatusType.WARNING;
                 case "Critical":
                     return StatusType.CRITICAL;
+                case "ERROR":
+                    return StatusType.ERROR;
+                case "NORMAL":
+                    return StatusType.NORMAL;
+                case "SERIOUS":
+                    return StatusType.SERIOUS;
+                case "WARNING":
+                    return StatusType.WARNING;
+                case "CRITICAL":
+                    return StatusType.CRITICAL;
                 default:
                     throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다.");
             }
@@ -42,6 +52,16 @@ namespace Onthesys.WebBuild
                 case "Warning":
                     return StatusType.WARNING;
                 case "Critical":
+                    return StatusType.CRITICAL;
+                case "ERROR":
+                    return StatusType.ERROR;
+                case "NORMAL":
+                    return StatusType.NORMAL;
+                case "SERIOUS":
+                    return StatusType.SERIOUS;
+                case "WARNING":
+                    return StatusType.WARNING;
+                case "CRITICAL":
                     return StatusType.CRITICAL;
                 default:
                     throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다.");
@@ -73,7 +93,6 @@ namespace Onthesys.WebBuild
     public class AlarmLogModel
     {
         public int alarm_id;
-        public int board_id;
         public int sensor_id;
         public string alarm_level;
         public string occured_time;
