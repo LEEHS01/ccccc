@@ -67,6 +67,34 @@ namespace Onthesys.WebBuild
                     throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다.");
             }
         }
+        public static StatusType GetAlarmLevel(this AlarmStatisticModel alaStatModel)
+        {
+            switch (alaStatModel.alarm_level)
+            {
+                case "Error":
+                    return StatusType.ERROR;
+                case "Normal":
+                    return StatusType.NORMAL;
+                case "Serious":
+                    return StatusType.SERIOUS;
+                case "Warning":
+                    return StatusType.WARNING;
+                case "Critical":
+                    return StatusType.CRITICAL;
+                case "ERROR":
+                    return StatusType.ERROR;
+                case "NORMAL":
+                    return StatusType.NORMAL;
+                case "SERIOUS":
+                    return StatusType.SERIOUS;
+                case "WARNING":
+                    return StatusType.WARNING;
+                case "CRITICAL":
+                    return StatusType.CRITICAL;
+                default:
+                    throw new Exception("예상 범위 밖의 인자가 제시됐습니다. AlarmLogModel.alarm_level 을 StatusType 자료형으로 파싱하는데에 실패했습니다.");
+            }
+        }
 
         public static string ToDbString(this StatusType status)
         {

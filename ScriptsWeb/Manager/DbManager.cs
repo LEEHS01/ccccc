@@ -125,13 +125,16 @@ namespace Onthesys.WebBuild
         internal void SetSmsServiceDelete(int serviceId, Action callback)
             => StartCoroutine(SetSmsServiceDeleteFunc(serviceId, callback));
 
+        internal void GetAlarmStatisticTimeRange(DateTime fromDt, DateTime toDt, Action<List<AlarmStatisticModel>> callback)
+            => StartCoroutine(GetAlarmStatisticTimeRangeFunc(fromDt, toDt, callback));
+
         /// <summary>
         /// 센서 임계값을 업데이트하는 함수입니다.
         /// </summary>
         /// <param name="sensors">업데이트할 센서 목록</param>
         /// <param name="callback">완료 콜백 (성공여부, 메시지)</param>
-/*        internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
-            => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));*/
+        internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
+            => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));
 
         #endregion
 
@@ -155,7 +158,7 @@ namespace Onthesys.WebBuild
                 @table_name = 'measure_log',
                 @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
                 @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
-                @element_count = 27,
+                @element_count = 26,
                 @default_value = 0.0;";
             
             //Debug.Log("Get Func" + query);
@@ -326,18 +329,37 @@ namespace Onthesys.WebBuild
 
 
         }
+        IEnumerator GetAlarmStatisticTimeRangeFunc(DateTime fromDt, DateTime toDt, Action<List<AlarmStatisticModel>> callback)
+        {
+            //fromDt = toDt.AddMinutes(-5);
+            var query = $@"
+                DECLARE @from DATETIME = '{fromDt:yyyy-MM-dd HH:mm:ss}';
+                DECLARE @to DATETIME = '{toDt:yyyy-MM-dd HH:mm:ss}';
+
+                EXEC GET_ALARM_STATISTIC_TIME_RANGE @from, @to;";
+
+            //Debug.Log("Get Func" + query);
+            yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
+            {
+                Debug.Log("GetMeasureLogFunc : " + result);
+                var wrapper = JsonUtility.FromJson<AlarmStatisticModelList>(result);
+                callback(wrapper.items);
+            });
+        }
+
+
         //수정 0609
-       /* IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
+        IEnumerator UpdateSensorThresholdsFunc(List<SensorModel> sensors, Action<bool, string> callback)
         {
             foreach (var sensor in sensors)
             {
                 var query = $@"
-            UPDATE WEB_DP.dbo.sensor 
-            SET 
-                threshold_warning = {sensor.threshold_warning}, 
-                threshold_serious = {sensor.threshold_serious}
-            WHERE 
-                sensor_id = {sensor.sensor_id}";
+                 UPDATE WEB_DP.dbo.sensor 
+                 SET 
+                     threshold_warning = {sensor.threshold_warning}, 
+                     threshold_serious = {sensor.threshold_serious}
+                 WHERE 
+                     sensor_id = {sensor.sensor_id}";
 
                 yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
                 {
@@ -353,7 +375,8 @@ namespace Onthesys.WebBuild
             }
 
             callback(true, "임계값이 성공적으로 저장되었습니다.");
-        }*/
+            //난 모르겠다
+        }
 
         #endregion
 

@@ -28,7 +28,6 @@ namespace Onthesys.WebBuild
 
         (List<MeasureModel> upper, List<MeasureModel> lower) sensorLogs = (new(), new());
         (DateTime from, DateTime to) datetime;
-        (float max, float min) valueRange;
         
         //Func
         List<Vector2> ControlPoints => dots.Select(dot =>
@@ -215,11 +214,12 @@ namespace Onthesys.WebBuild
             if (sensorLogs.lower.Count < 1 || sensorLogs.upper.Count < 1) return;
 
             float maxVal = diffs.Select(val => Mathf.Abs(val.measured_value)).Max();
+            maxVal = Math.Max(maxVal, 0.1f); 
 
             foreach (var lbl in lblAmountList)
             {
                 float value = maxVal / (lblAmountList.Count - 1) * (lblAmountList.Count - 1 - lblAmountList.IndexOf(lbl));
-                value = value*2f - maxVal; //0에서 maxVal까지의 범위를 -maxVal에서 maxVal로 변환
+                value = value*2f - maxVal; 
                 DOTween.To(() => lbl.rectTransform.anchoredPosition.y,
                     value => lbl.text = value.ToString("F1"),
                     value, 0.4f);
@@ -254,14 +254,15 @@ namespace Onthesys.WebBuild
             float topY = anchorPos.y + parentSize.y;
 
             float maxVal = diffs.Select(val => Mathf.Abs(val.measured_value)).Max();
+            maxVal = Math.Max(maxVal, 0.1f); 
 
             for (int i = dots.Count-1; i >= 0; i--)
             {
                 RectTransform childRect = dots[i];
-                float measuredValue = i==0? 0f : diffs[i].measured_value;
-                float measuredRatio = measuredValue / maxVal * 0.5f + 0.5f;    //음과 양 모두 표현하기에 0.5에서 시작
+                float measuredValue =/* i==0? 0f : */diffs[i].measured_value;
+                float measuredRatio = measuredValue / maxVal * 0.5f;    //음과 양 모두 표현하기에 0.5에서 시작
 
-                float targetY = Mathf.Lerp(bottomY, topY, measuredRatio);
+                float targetY = Mathf.LerpUnclamped(bottomY, topY, measuredRatio);
                 Vector2 newPos = new(anchorPos.x, targetY);
 
                 childRect.DOAnchorPos(newPos, 0.4f);

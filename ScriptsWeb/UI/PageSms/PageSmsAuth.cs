@@ -26,15 +26,18 @@ public class PageSmsAuth : MonoBehaviour
 
     private void OnVerificationResponse(object obj)
     {
-        Debug.Log("OnVerificationResponse start");
+        //Debug.Log("OnVerificationResponse start");
         if (obj is not (bool isVerified, string verificationKey)) return;
-        Debug.Log("OnVerificationResponse type good");
+        //Debug.Log("OnVerificationResponse type good");
 
         if (isVerified)
             UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
-        else { }
-
-        Debug.Log("OnVerificationResponse is " + isVerified.ToString());
+        else
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("로그인 실패", "잘못된 관리자 암호가 입력되었습니다. 다시 입력해주세요."));
+            txbPassword.text = string.Empty;
+        }
+        //Debug.Log("OnVerificationResponse is " + isVerified.ToString());
     }
 
     public void OnClick()

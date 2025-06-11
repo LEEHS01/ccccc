@@ -61,6 +61,7 @@ public class PageThreshold : MonoBehaviour
         {
             Debug.LogError("임계값 저장 실패: " + message);
             // 실패 알림 TODO
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("임계값 수정 실패", message));
         }
     }
 
@@ -92,21 +93,17 @@ public class PageThreshold : MonoBehaviour
         ItemThreshold[] allItems = GetComponentsInChildren<ItemThreshold>();
         foreach (var item in allItems)
         {
-            var updatedSensor = item.GetUpdatedSensorData();
-            if (updatedSensor != null)
-            {
-                updatedSensors.Add(updatedSensor);
-            }
+            if (item.GetUpdatedSensorData() is not SensorModel updatedSensor) return;
+            updatedSensors.Add(updatedSensor);
         }
 
-        if (updatedSensors.Count > 0)
-        {
-            UiManager.Instance.Invoke(UiEventType.RequestThresholdUpdate, updatedSensors);
+        if (updatedSensors.Count != 3) {
+            Debug.LogWarning("모든 항목이 올바른 경우에만 저장할 수 있습니다!");
+            return;
         }
-        else
-        {
-            Debug.LogWarning("저장할 유효한 센서 데이터가 없습니다.");
-        }
+
+        // 임계값 업데이트 요청
+        UiManager.Instance.Invoke(UiEventType.RequestThresholdUpdate, updatedSensors);
     }
 
     void OnClickCancel()

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using TMPro;
@@ -168,6 +169,26 @@ public class PageSmsUpdate : MonoBehaviour
     }
     void OnClickConfirm()
     {
+
+
+        if (string.IsNullOrWhiteSpace(txbName.text))
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "이름을 입력해주세요."));
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(txbPhoneNumber.text))
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "전화번호를 입력해주세요."));
+            return;
+        }
+        string regexPattern = @"^(01[016789]\d{7,8}|01[016789]-\d{3,4}-\d{4}|0\d{1,2}-\d{3,4}-\d{4})$";
+        if (!Regex.IsMatch(txbPhoneNumber.text, regexPattern))
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "유효한 전화번호 형식이 아닙니다."));
+            return;
+        }
+
         var sensors = modelProvider.GetSensors()
          .GroupBy(s => s.sensor_id)
          .Select(g => g.First())

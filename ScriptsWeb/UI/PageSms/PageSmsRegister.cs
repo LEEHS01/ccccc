@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using TMPro;
@@ -90,11 +91,13 @@ public class PageSmsRegister : MonoBehaviour
         {
             //성공알림 TODO
 
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 성공", "신규 서비스를 등록하는데에 성공했습니다"));
             UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
         }
         else 
         {
             //실패알림 TODO
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "신규 서비스를 등록하는데에 실패했습니다"));
         }
     }
 
@@ -108,21 +111,25 @@ public class PageSmsRegister : MonoBehaviour
             _ => StatusType.SERIOUS
         };
     }
-    void OnClickConfirm() 
+    void OnClickConfirm()
     {
-
         if (string.IsNullOrWhiteSpace(txbName.text))
         {
-            Debug.LogError("이름을 입력해주세요.");
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "이름을 입력해주세요."));
             return;
         }
 
         if (string.IsNullOrWhiteSpace(txbPhoneNumber.text))
         {
-            Debug.LogError("전화번호를 입력해주세요.");
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "전화번호를 입력해주세요."));
             return;
         }
-
+        string regexPattern = @"^(01[016789]\d{7,8}|01[016789]-\d{3,4}-\d{4}|0\d{1,2}-\d{3,4}-\d{4})$";
+        if (!Regex.IsMatch(txbPhoneNumber.text, regexPattern))
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "유효한 전화번호 형식이 아닙니다."));
+            return;
+        }
 
         var sensors = UiManager.Instance.modelProvider.GetSensors()
             .GroupBy(s => s.sensor_id)

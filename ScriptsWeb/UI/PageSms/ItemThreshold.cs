@@ -16,6 +16,7 @@ public class ItemThreshold : MonoBehaviour
     TMP_InputField txbWarningValue, txbSeriousValue;
 
     [SerializeField] public int sensorId;
+    public readonly static (float max, float min) allowedRange = (3000f, 0f); // 허용된 임계값 범위
 
     private void Start()
     {
@@ -61,17 +62,18 @@ public class ItemThreshold : MonoBehaviour
             float.TryParse(txbSeriousValue.text, out float seriousValue))
         {
             // 유효성 검사
-            if (warningValue < 0 || seriousValue < 0)
-            {
-                Debug.LogWarning($"[{sensorData.sensor_name}] 임계값은 0 이상이어야 합니다.");
-                return null;
-            }
 
             if (seriousValue >= warningValue)
             {
-                Debug.LogWarning($"[{sensorData.sensor_name}] 경계값은 경보값보다 작아야 합니다.");
+                UiManager.Instance.Invoke(UiEventType.PopupError, ("임계값 수정 실패", $"경계값은 경보값보다 작아야 합니다."));
                 return null;
             }
+            if (seriousValue > allowedRange.max || allowedRange.min > seriousValue || warningValue > allowedRange.max || allowedRange.min > warningValue)
+            {
+                UiManager.Instance.Invoke(UiEventType.PopupError, ("임계값 수정 실패", $"임계값이 허용된 실수 범위({allowedRange.min}~{allowedRange.max})를 초과했습니다."));
+                return null;
+            }
+            
 
             // 업데이트된 센서 데이터 생성
             SensorModel updatedSensor = new SensorModel
@@ -89,7 +91,7 @@ public class ItemThreshold : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"[{sensorData.sensor_name}] 올바른 숫자를 입력해주세요.");
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("임계값 수정 실패", $"올바른 숫자를 입력해주세요."));
             return null;
         }
     }

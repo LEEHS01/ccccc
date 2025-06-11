@@ -23,7 +23,9 @@ namespace Assets.ScriptsWeb.UI
         List<Button> btnTimespanList;
         (TMP_InputField from, TMP_InputField to) txbDatetime;
         Button btnConfirm;
-        (TMP_Text max, TMP_Text min, TMP_Text avg, TMP_Text std) lblStats;
+        //(TMP_Text max, TMP_Text min, TMP_Text avg, TMP_Text std) lblStats;
+        ((TMP_Text threshold, TMP_Text count, TMP_Text latestTime, TMP_Text durationSum) warning,
+        (TMP_Text threshold, TMP_Text count, TMP_Text latestTime, TMP_Text durationSum) serious) statLbls;
 
         //Data
         DateTime dtFrom, dtTo;
@@ -69,23 +71,28 @@ namespace Assets.ScriptsWeb.UI
         private void Awake()
         {
             Transform pnl = transform.Find("SearchPanel");
-
-            lblStats = (
-                pnl.Find("lbShowPanel").Find("LbMax").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
-                pnl.Find("lbShowPanel").Find("LbMin").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
-                pnl.Find("lbShowPanel 2").Find("LbAvg").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>(),
-                pnl.Find("lbShowPanel 2").Find("LbDeviation").GetComponentInChildren<Image>().GetComponentInChildren<TMP_Text>()
+            statLbls = (
+                (
+                    pnl.Find("pnlWarning").Find("lblThreshold").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlWarning").Find("lblCount").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlWarning").Find("lblLatest").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlWarning").Find("lblDurationSum").GetComponent<TMP_Text>()
+                ),
+                (
+                    pnl.Find("pnlSerious").Find("lblThreshold").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlSerious").Find("lblCount").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlSerious").Find("lblLatest").GetComponent<TMP_Text>(),
+                    pnl.Find("pnlSerious").Find("lblDurationSum").GetComponent<TMP_Text>()
+                )
             );
 
             btnTimespanList = transform.parent.parent.Find("btnCon").GetComponentsInChildren<Button>().ToList();
             txbDatetime = (
-                    transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeFrom").GetComponent<TMP_InputField>(),
-                    transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeTo").GetComponent<TMP_InputField>()
-                );
-            //btnSensorList = transform.Find("pnlBtnsSensor").GetComponentsInChildren<Button>().ToList();
+                transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeFrom").GetComponent<TMP_InputField>(),
+                transform.parent.parent.Find("pnlDatetimeRange").Find("txbDatetimeTo").GetComponent<TMP_InputField>()
+            );
+
             btnConfirm = transform.parent.parent.Find("pnlDatetimeRange").Find("Button").GetComponent<Button>();
-
-
         }
 
         void Start()
@@ -104,21 +111,55 @@ namespace Assets.ScriptsWeb.UI
 
             btnConfirm.onClick.AddListener(OnClickSearch);
 
-
-            Debug.Log("UiManager.Instance.Register try");
             UiManager.Instance.Register(UiEventType.SelectSensorWithinTab, OnSelectSensorWithinTab);
             UiManager.Instance.Register(UiEventType.ChangeTrendLineHistory, OnChangeTrendLineHistory);
-            Debug.Log("UiManager.Instance.Register try");
         }
 
         private void OnChangeTrendLineHistory(object obj)
         {
-            List<MeasureModel> measures = modelProvider.GetMeasureHistoryList();
+            //통계 자료 수령
+            List<AlarmStatisticModel> alarmStatisticModels = modelProvider.GetAlarmStatistics()
+                .Where(stat => stat.sensor_id == sensorId.Value)
+                .ToList();
+            AlarmStatisticModel warningStat = alarmStatisticModels.Find(stat => stat.GetAlarmLevel() == StatusType.WARNING) ??
+                new AlarmStatisticModel(sensorId.Value, StatusType.WARNING.ToDbString(), 0, DateTime.MinValue.ToString("yyyy-MM-dd HH:mm:ss"), 0f);
+            AlarmStatisticModel seriousStat = alarmStatisticModels.Find(stat => stat.GetAlarmLevel() == StatusType.SERIOUS) ??
+                new AlarmStatisticModel(sensorId.Value, StatusType.SERIOUS.ToDbString(), 0, DateTime.MinValue.ToString("yyyy-MM-dd HH:mm:ss"), 0f);
 
-            lblStats.max.text = measures.Max(m => m.measured_value).ToString("F2");
-            lblStats.min.text = measures.Min(m => m.measured_value).ToString("F2");
-            lblStats.avg.text = measures.Average(m => m.measured_value).ToString("F2");
-            lblStats.std.text = Math.Sqrt(measures.Average(m => Math.Pow(m.measured_value - measures.Average(m2 => m2.measured_value), 2))).ToString("F2");
+            //센서 모델 획득
+            SensorModel sensorModel = modelProvider.GetSensor(1, sensorId.Value);
+            
+            //현재 알람 상황 획득
+            List<AlarmLogModel> alarms = modelProvider.GetAlarmLogList().Where(log => log.sensor_id == sensorId.Value /*&& log.solved_time == null*/).ToList();
+            Debug.LogWarning("alarms.Count : " + alarms.Count);
+            alarms.ForEach(ala => Debug.LogWarning(ala.alarm_level));
+
+            StatusType statusType = StatusType.NORMAL;
+            if(alarms.Find(alarm => alarm.GetAlarmLevel() == StatusType.WARNING) is not null)
+                statusType = StatusType.WARNING;
+            else if (alarms.Find(alarm => alarm.GetAlarmLevel() == StatusType.SERIOUS) is not null)
+                statusType = StatusType.SERIOUS;
+
+
+            //라벨들에 적용
+            statLbls.warning.threshold.text = sensorModel.threshold_warning.ToString("F1");
+            statLbls.warning.count.text = warningStat.count.ToString();
+            statLbls.warning.latestTime.text = statusType == StatusType.WARNING? "진행 중" : warningStat.count != 0? warningStat.lastestTime.ToString("yy-MM-dd\nHH:mm:ss") : "찾을 수 없음";
+            float durMinWarn = (warningStat.duration_sec / 60f);
+            string durStrWarn = durMinWarn > 300f ? (durMinWarn / 60f).ToString("F1") + "시간" : durMinWarn.ToString("F1") + "분";
+            statLbls.warning.durationSum.text = durStrWarn;
+
+            statLbls.serious.threshold.text = sensorModel.threshold_serious.ToString("F1");
+            statLbls.serious.count.text = seriousStat.count.ToString();
+            statLbls.serious.latestTime.text = statusType != StatusType.NORMAL? "진행 중" : seriousStat.count != 0 ? seriousStat.lastestTime.ToString("yy-MM-dd\nHH:mm:ss") : "찾을 수 없음";
+            float durMinseri = (seriousStat.duration_sec / 60f);
+            string durStrseri = durMinseri > 300f ? (durMinseri / 60f).ToString("F1") + "시간" : durMinseri.ToString("F1") + "분";
+            statLbls.serious.durationSum.text = durStrseri;
+
+            //lblStats.max.text = measures.Max(m => m.measured_value).ToString("F2");
+            //lblStats.min.text = measures.Min(m => m.measured_value).ToString("F2");
+            //lblStats.avg.text = measures.Average(m => m.measured_value).ToString("F2");
+            //lblStats.std.text = Math.Sqrt(measures.Average(m => Math.Pow(m.measured_value - measures.Average(m2 => m2.measured_value), 2))).ToString("F2");
         }
 
         private void OnSelectSensorWithinTab(object obj)

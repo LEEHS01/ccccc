@@ -21,10 +21,12 @@ namespace Onthesys.WebBuild
         public int boardId, sensorId;
         SensorModel sensorData;
         float measuredValue;
-        GameObject maintenancePanel;//0610 수정
+        GameObject pnlCoverDelayedDate;//0610 수정
 
         //Components
-        TMP_Text lblName, /*lblProgressRecent, lblProgressMax,*/ lblValueRecent,/* lblValueMax*/ /*lblIsFixing*/ lblDate, lblTime, lblinspectionSensorname, lblUnit;
+        TMP_Text lblName, /*lblProgressRecent, lblProgressMax,*/ lblValueRecent,/* lblValueMax*/ /*lblIsFixing*/ lblUnit;
+        TMP_Text lblCoverDate, lblCoverTime, lblCoverName, lblCoverTitle;
+
         //Image imgProgressGauge;
         //List<Image> imgMarkerList;
 
@@ -61,10 +63,11 @@ namespace Onthesys.WebBuild
             lblUnit = transform.Find("TextUnit").GetComponent<TMP_Text>();
 
             //0610 수정
-            maintenancePanel = transform.Find("Undermaintenance").gameObject;
-            lblDate = maintenancePanel.transform.Find("txtDate").GetComponent<TMP_Text>();
-            lblTime = maintenancePanel.transform.Find("txtTime").GetComponent<TMP_Text>();
-            lblinspectionSensorname = maintenancePanel.transform.Find("txtSensor").GetComponent<TMP_Text>();
+            pnlCoverDelayedDate = transform.Find("pnlCover").gameObject;
+            lblCoverDate = pnlCoverDelayedDate.transform.Find("txtDate").GetComponent<TMP_Text>();
+            lblCoverTime = pnlCoverDelayedDate.transform.Find("txtTime").GetComponent<TMP_Text>();
+            lblCoverTitle = pnlCoverDelayedDate.transform.Find("txtTitle").GetComponent<TMP_Text>();
+            lblCoverName = pnlCoverDelayedDate.transform.Find("txtSensorName").GetComponent<TMP_Text>();
             //maintenancePanel.SetActive(false);
 
             GetComponentInParent<Button>().onClick.AddListener(() =>
@@ -132,25 +135,33 @@ namespace Onthesys.WebBuild
             maintenancePanel.gameObject.SetActive(testFixing);
 */
             //0610 수정       
-            maintenancePanel.gameObject.SetActive(sensorData.isFixing);
 
-            if (sensorData.isFixing)
+            TimeSpan delayment = DateTime.UtcNow.AddHours(9) - GetMaintenanceStartTime();
+            Debug.Log($"[IndicatorMeasure] Delayment for sensor {sensorData.sensor_name} (Board {boardId}, Sensor {sensorId}): {delayment.TotalMinutes} minutes");
+            if (sensorData.isFixing || delayment > new TimeSpan(0,1,0))//테스트로 1분 지연을 임계치로
             {
+                pnlCoverDelayedDate.gameObject.SetActive(true);
                 DateTime maintenanceTime = GetMaintenanceStartTime();
-                lblDate.text = maintenanceTime.ToString("MM-dd-yy");
-                lblTime.text = maintenanceTime.ToString("HH:mm:ss");
-                lblinspectionSensorname.text = sensorData.sensor_name;//0611 센서명 추가
+
+                lblCoverDate.text = (DateTime.UtcNow.AddHours(9).Date != maintenanceTime.Date) ? maintenanceTime.ToString("yy-MM-dd") : "";
+                lblCoverTime.text = maintenanceTime.ToString("HH:mm:ss");
+                lblCoverName.text = $"{sensorData.sensor_name}({(sensorData.board_id == 1 ? "상류" : "하류")})";//0611 센서명 추가
+
+                lblCoverTitle.text = sensorData.isFixing? "센서 점검 중" : "데이터 불러오기 지연";
+            }
+            else 
+            {
+                pnlCoverDelayedDate.gameObject.SetActive(false);
             }
 
+                //lblProgressMax.text = lblValueMax.text = "" + sensorData.threshold_critical;
+                //lblProgressRecent.text = lblValueRecent.text = "" + measuredValue.ToString("0.0");
 
-            //lblProgressMax.text = lblValueMax.text = "" + sensorData.threshold_critical;
-            //lblProgressRecent.text = lblValueRecent.text = "" + measuredValue.ToString("0.0");
-
-            DOVirtual.Float(float.Parse(lblValueRecent.text), measuredValue, 0.4f, value =>
-            {
-                //lblProgressRecent.text = value.ToString("F2"); // 소수점 둘째자리까지
-                lblValueRecent.text = value.ToString("F1"); // 소수점 첫째자리
-            });
+                DOVirtual.Float(float.Parse(lblValueRecent.text), measuredValue, 0.4f, value =>
+                {
+                    //lblProgressRecent.text = value.ToString("F2"); // 소수점 둘째자리까지
+                    lblValueRecent.text = value.ToString("F1"); // 소수점 첫째자리
+                });
 
             /* DOVirtual.Float(0f, measuredValue, 0.4f, value =>
              {
