@@ -1,4 +1,5 @@
 ﻿using DG.Tweening;
+using Onthesys.ExeBuild;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,9 +21,10 @@ namespace Onthesys.WebBuild
         public int boardId, sensorId;
         SensorModel sensorData;
         float measuredValue;
+        GameObject maintenancePanel;//0610 수정
 
         //Components
-        TMP_Text lblName, /*lblProgressRecent, lblProgressMax,*/ lblValueRecent,/* lblValueMax*/ lblIsFixing;
+        TMP_Text lblName, /*lblProgressRecent, lblProgressMax,*/ lblValueRecent,/* lblValueMax*/ /*lblIsFixing*/ lblDate, lblTime, lblinspectionSensorname, lblUnit;
         //Image imgProgressGauge;
         //List<Image> imgMarkerList;
 
@@ -55,7 +57,15 @@ namespace Onthesys.WebBuild
             lblValueRecent = transform.Find("TextSensorValue").GetComponent<TMP_Text>();
             //lblValueMax = transform.Find("Text (TMP) List (2)").GetComponent<TMP_Text>();
             //imgMarkerList = transform.Find("Layout").Find("Markers").GetComponentsInChildren<Image>().ToList();
-            lblIsFixing = transform.Find("Inspection").GetComponent<TMP_Text>();
+            //lblIsFixing = transform.Find("Inspection").GetComponent<TMP_Text>();
+            lblUnit = transform.Find("TextUnit").GetComponent<TMP_Text>();
+
+            //0610 수정
+            maintenancePanel = transform.Find("Undermaintenance").gameObject;
+            lblDate = maintenancePanel.transform.Find("txtDate").GetComponent<TMP_Text>();
+            lblTime = maintenancePanel.transform.Find("txtTime").GetComponent<TMP_Text>();
+            lblinspectionSensorname = maintenancePanel.transform.Find("txtSensor").GetComponent<TMP_Text>();
+            //maintenancePanel.SetActive(false);
 
             GetComponentInParent<Button>().onClick.AddListener(() =>
             {
@@ -90,12 +100,48 @@ namespace Onthesys.WebBuild
             UpdateUi();
         }
 
+        DateTime GetMaintenanceStartTime()
+        {
+            // 통신이 끊긴 시간 = 마지막으로 데이터를 받은 시간
+            var recentModel = modelProvider.GetMeasureRecentBySensor(boardId, sensorId);
+            if (recentModel != null)
+            {
+                return recentModel.MeasuredTime;
+            }
+
+            return DateTime.Now;
+        }
+
         void UpdateUi()
         {
             if (sensorData == null) return;
 
             lblName.text = sensorData.sensor_name;
-            lblIsFixing.gameObject.SetActive(sensorData.isFixing);
+            //lblIsFixing.gameObject.SetActive(sensorData.isFixing);
+            if (lblUnit != null)
+            {
+                lblUnit.text = sensorData.unit;
+            }
+            
+            /*// 테스트용: 특정 센서만 강제로 점검중 표시
+            bool testFixing = sensorData.isFixing;
+            if (boardId == 1 && sensorId == 1) // 센서1-1 테스트
+            {
+                testFixing = true; // 이 센서만 강제로 점검중
+            }
+            maintenancePanel.gameObject.SetActive(testFixing);
+*/
+            //0610 수정       
+            maintenancePanel.gameObject.SetActive(sensorData.isFixing);
+
+            if (sensorData.isFixing)
+            {
+                DateTime maintenanceTime = GetMaintenanceStartTime();
+                lblDate.text = maintenanceTime.ToString("MM-dd-yy");
+                lblTime.text = maintenanceTime.ToString("HH:mm:ss");
+                lblinspectionSensorname.text = sensorData.sensor_name;//0611 센서명 추가
+            }
+
 
             //lblProgressMax.text = lblValueMax.text = "" + sensorData.threshold_critical;
             //lblProgressRecent.text = lblValueRecent.text = "" + measuredValue.ToString("0.0");
@@ -103,9 +149,14 @@ namespace Onthesys.WebBuild
             DOVirtual.Float(float.Parse(lblValueRecent.text), measuredValue, 0.4f, value =>
             {
                 //lblProgressRecent.text = value.ToString("F2"); // 소수점 둘째자리까지
-                lblValueRecent.text = value.ToString("F2"); // 소수점 둘째자리까지
+                lblValueRecent.text = value.ToString("F1"); // 소수점 첫째자리
             });
 
+            /* DOVirtual.Float(0f, measuredValue, 0.4f, value =>
+             {
+                 lblValueRecent.text = value.ToString("F1");
+             });
+ */
             //float denominator = Mathf.Max(sensorData.threshold_critical, 1f);
             //float clampedRatio = Mathf.Min(measuredValue / denominator, 1f);
             //imgProgressGauge.DOFillAmount (clampedRatio, 0.4f);

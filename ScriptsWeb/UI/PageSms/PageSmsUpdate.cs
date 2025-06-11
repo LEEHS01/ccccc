@@ -37,7 +37,7 @@ public class PageSmsUpdate : MonoBehaviour
         ddlSensorselect = transform.Find("ddlSensor").GetComponent<TMP_Dropdown>();
         ddlThresholdselect = transform.Find("ddlThreshold").GetComponent<TMP_Dropdown>();
 
-        //InitializeDropdowns();    //임시더미데스트0605
+        //InitializeDropdowns();  
 
         UiManager.Instance.Register(UiEventType.ResponseSmsUpdate, OnResponseSmsUpdate);
         UiManager.Instance.Register(UiEventType.NavigateSms, OnNavigateSms);
@@ -49,19 +49,23 @@ public class PageSmsUpdate : MonoBehaviour
     //0605 수정사항
     private void InitializeDropdowns()
     {
- 
-        /*//임시 더미센서데이터
-        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서1 (1-1)"));
-        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서2 (1-2)"));
-        ddlSensorselect.options.Add(new TMP_Dropdown.OptionData("센서3 (2-1)"));*/
+
+        ddlSensorselect.options.Clear();
+
+        var sensors = modelProvider.GetSensors()
+            .GroupBy(s => s.sensor_id)
+            .Select(g => g.First())
+            .OrderBy(s => s.sensor_id)
+            .ToList();
 
 
-        var sensors = modelProvider.GetSensors();
         foreach (var sensor in sensors)
         {
-            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name} (센서{sensor.sensor_id})"));
+            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name}"));
         }
 
+        // 임계등급 드롭다운 초기화  
+        ddlThresholdselect.options.Clear();
         ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경계"));    // Serious
         ddlThresholdselect.options.Add(new TMP_Dropdown.OptionData("경보"));    // Warning
     }
@@ -70,30 +74,54 @@ public class PageSmsUpdate : MonoBehaviour
 
     private void OnNavigateSms(object obj)
     {
-        if (obj is not int serviceId) return;
 
-        this.data = modelProvider.GetSmsServiceById(serviceId);
+        if (obj is int serviceId)
+        {
+            InitializeDropdowns();
 
-        txbName.SetTextWithoutNotify(data.name);
-        txbPhoneNumber.SetTextWithoutNotify(data.phone);
+            this.data = modelProvider.GetSmsServiceById(serviceId);
 
-        SetDropdownValues();
+            // 기본 정보 설정
+            txbName.SetTextWithoutNotify(data.name);
+            txbPhoneNumber.SetTextWithoutNotify(data.phone);
+
+            // 드롭다운 설정
+            SetDropdownValues();
+        }
     }
 
     private void SetDropdownValues()
     {
-        var sensors = modelProvider.GetSensors();
-        int sensorIndex = sensors.FindIndex(s => s.sensor_id == data.sensor_id);
-        if (sensorIndex >= 0) ddlSensorselect.SetValueWithoutNotify(sensorIndex);
+        // 센서 드롭다운 설정
+        var sensors = modelProvider.GetSensors()
+            .GroupBy(s => s.sensor_id)
+            .Select(g => g.First())
+            .OrderBy(s => s.sensor_id)
+            .ToList();
 
+        // 현재 데이터의 sensor_id와 일치하는 인덱스 찾기
+        int sensorIndex = sensors.FindIndex(s => s.sensor_id == data.sensor_id);
+        if (sensorIndex >= 0)
+        {
+            ddlSensorselect.SetValueWithoutNotify(sensorIndex);
+            ddlSensorselect.RefreshShownValue();
+        }
+
+        // 임계등급 드롭다운 설정
         int thresholdIndex = data.alarm_level switch
         {
-            "Warning" => 0,
-            "Serious" => 1,
-            _ => 0
+            "Serious" => 0,  // "경계"
+            "Warning" => 1,  // "경보"
+            _ => 0           // 기본값
         };
+
         ddlThresholdselect.SetValueWithoutNotify(thresholdIndex);
+        ddlThresholdselect.RefreshShownValue();
+
+        Debug.Log($"센서 설정: sensor_id={data.sensor_id}, 드롭다운 인덱스={sensorIndex}");
+        Debug.Log($"임계등급 설정: {data.alarm_level}, 드롭다운 인덱스={thresholdIndex}");
     }
+
 
     private void OnResponseSmsUpdate(object obj)
     {
@@ -103,16 +131,29 @@ public class PageSmsUpdate : MonoBehaviour
         {
             if (gameObject.activeSelf == true)
             {
+                // 로컬 데이터 업데이트
                 data.name = txbName.text;
                 data.phone = txbPhoneNumber.text;
 
-                //성공알림 TODO
+                // 센서와 임계등급도 업데이트
+                var sensors = modelProvider.GetSensors()
+                    .GroupBy(s => s.sensor_id)
+                    .Select(g => g.First())
+                    .OrderBy(s => s.sensor_id)
+                    .ToList();
+
+                var selectedSensor = sensors[ddlSensorselect.value];
+                data.sensor_id = selectedSensor.sensor_id;
+                data.alarm_level = GetTypeFromDropdown().ToDbString();
+
+                Debug.Log("SMS 서비스 수정 성공!");
                 UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
             }
         }
         else
         {
             //실패알림 TODO
+            Debug.LogError("SMS 서비스 수정 실패: " + message);
         }
     }
 
@@ -120,14 +161,19 @@ public class PageSmsUpdate : MonoBehaviour
     {
         return ddlThresholdselect.value switch  
         {
-            0 => StatusType.WARNING,
-            1 => StatusType.SERIOUS,
-            _ => StatusType.WARNING
+            0 => StatusType.SERIOUS,
+            1 => StatusType.WARNING,
+            _ => StatusType.SERIOUS
         };
     }
     void OnClickConfirm()
     {
-        var sensors = modelProvider.GetSensors();
+        var sensors = modelProvider.GetSensors()
+         .GroupBy(s => s.sensor_id)
+         .Select(g => g.First())
+         .OrderBy(s => s.sensor_id)
+         .ToList();
+
         var selectedSensor = sensors[ddlSensorselect.value];
 
         UiManager.Instance.Invoke(UiEventType.RequestSmsUpdate, (data.service_id, new SmsServiceModel() 

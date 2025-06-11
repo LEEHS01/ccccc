@@ -280,6 +280,7 @@ namespace Onthesys.WebBuild
                 @name = '{updatedModel.name}',
                 @phone = '{updatedModel.phone}',
                 @is_enabled = {updatedModel.is_enabled},
+                @sensor_id = {updatedModel.sensor_id},
                 @alarm_level = '{updatedModel.alarm_level}';";
 
             //Debug.Log("Get Func" + query);
@@ -297,7 +298,8 @@ namespace Onthesys.WebBuild
                 @name = '{newModel.name}',
                 @phone = '{newModel.phone}',
                 @is_enabled = {newModel.is_enabled},
-                @alarm_level = '{newModel.alarm_level}';";
+                @sensor_id = {newModel.sensor_id},
+                @alarm_level = '{newModel.alarm_level}'";
 
             //Debug.Log("Get Func" + query);
             yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>

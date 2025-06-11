@@ -12,6 +12,7 @@ namespace Onthesys.WebBuild
         public float threshold_warning;
         public float threshold_critical;
         public string sensor_name;
+        public string unit;
         public bool is_using;
         public bool is_fixing;
 

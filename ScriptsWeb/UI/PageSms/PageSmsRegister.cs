@@ -41,17 +41,32 @@ public class PageSmsRegister : MonoBehaviour
 
     private void InitializeDropdowns()
     {
+
         ddlSensorselect.options.Clear();
-        var sensors = UiManager.Instance.modelProvider.GetSensors();
-        foreach (var sensor in sensors)
+        var sensors = UiManager.Instance.modelProvider.GetSensors()
+            .GroupBy(s => s.sensor_id)
+            .Select(g => g.First())
+            .OrderBy(s => s.sensor_id)
+            .ToList();
+
+
+        if (sensors != null && sensors.Count > 0)
         {
-            ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name} ({sensor.board_id}-{sensor.sensor_id})"));
+            foreach (var sensor in sensors)
+            {
+                ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name}"));
+            }
+            ddlSensorselect.value = 0; 
+            ddlSensorselect.RefreshShownValue();
         }
 
         ddlLevelselect.options.Clear();
         ddlLevelselect.options.Add(new TMP_Dropdown.OptionData("경계"));    // Serious
         ddlLevelselect.options.Add(new TMP_Dropdown.OptionData("경보"));    // Warning
-        
+        ddlLevelselect.value = 0;
+        ddlLevelselect.RefreshShownValue();
+
+
     }
 
     private void OnNavigateSms(object obj)
@@ -85,32 +100,60 @@ public class PageSmsRegister : MonoBehaviour
 
     StatusType GetTypeFromDropdown() 
     {
+        //Debug.Log($"Selected threshold index: {ddlLevelselect.value}");
         return ddlLevelselect.value switch
         {
-            0 => StatusType.WARNING,   
-            1 => StatusType.SERIOUS,  
-            _ => StatusType.WARNING    
+            0 => StatusType.SERIOUS,   
+            1 => StatusType.WARNING,  
+            _ => StatusType.SERIOUS
         };
     }
     void OnClickConfirm() 
     {
-        var sensors = UiManager.Instance.modelProvider.GetSensors();
-        var selectedSensor = sensors[ddlSensorselect.value];
 
+        if (string.IsNullOrWhiteSpace(txbName.text))
+        {
+            Debug.LogError("이름을 입력해주세요.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(txbPhoneNumber.text))
+        {
+            Debug.LogError("전화번호를 입력해주세요.");
+            return;
+        }
+
+
+        var sensors = UiManager.Instance.modelProvider.GetSensors()
+            .GroupBy(s => s.sensor_id)
+            .Select(g => g.First())
+            .OrderBy(s => s.sensor_id)
+            .ToList();
+
+        var selectedSensor = sensors[ddlSensorselect.value ];
+
+        //Debug.Log($"최종 선택된 센서: {selectedSensor.sensor_name} (sensor_id: {selectedSensor.sensor_id})");
 
         SmsServiceModel model = new SmsServiceModel
         {
             name = txbName.text,
             phone = txbPhoneNumber.text,
-            alarm_level = GetTypeFromDropdown().ToDbString(),  // 0605 수정
-            is_enabled = true,                               // 0605 수정
-            //board_id = selectedSensor.board_id,              // 
-            sensor_id = selectedSensor.sensor_id,            // 0605 수정
-            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  //0605 수정
+            alarm_level = GetTypeFromDropdown().ToDbString(),  
+            is_enabled = true,                               
+            //board_id = selectedSensor.board_id,              
+            sensor_id = selectedSensor.sensor_id,            
+            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  
         };
+        /*// 생성된 모델 확인 로그 추가
+        Debug.Log($"=== 생성된 SMS 모델 ===");
+        Debug.Log($"이름: '{model.name}'");
+        Debug.Log($"전화번호: '{model.phone}'");
+        Debug.Log($"센서ID: {model.sensor_id}");
+        Debug.Log($"알람레벨: '{model.alarm_level}'");*/
 
         UiManager.Instance.Invoke(UiEventType.RequestSmsRegister, model);
     }
+
     void OnClickCancel()
     {
         UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));

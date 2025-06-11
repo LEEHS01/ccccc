@@ -237,7 +237,18 @@ namespace Onthesys.WebBuild
 
                 dbManager.SetSmsServiceUpdate(serviceId, updatedModel, () =>
                 {
-                    UiManager.Instance.Invoke(UiEventType.ResponseSmsUpdate, (result.is_succeed, result.auth_code));
+                    var existingService = smsServices.Find(s => s.service_id == serviceId);
+                    if (existingService != null)
+                    {
+                        existingService.name = updatedModel.name;
+                        existingService.phone = updatedModel.phone;
+                        existingService.sensor_id = updatedModel.sensor_id;
+                        existingService.alarm_level = updatedModel.alarm_level;
+                        existingService.is_enabled = updatedModel.is_enabled;
+                        existingService.checked_time = updatedModel.checked_time;
+                    }
+
+                    UiManager.Instance.Invoke(UiEventType.ResponseSmsUpdate, (result.is_succeed, "수정 완료"));
                 });
             });
         }     
