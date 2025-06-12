@@ -260,7 +260,7 @@ namespace Onthesys.WebBuild
 
         }
 
-        /*void UpdateTimeLabels()
+        void UpdateTimeLabels()
         {
             lblHourList.ForEach(item =>
             {
@@ -274,39 +274,6 @@ namespace Onthesys.WebBuild
                     item.text = dt.ToString("MM-dd HH:mm");
                 else
                     item.text = dt.ToString("yy-MM-dd");
-            });
-        }*/
-
-        void UpdateTimeLabels()
-        {
-            lblHourList.ForEach(item =>
-            {
-                float ratio = (float)lblHourList.IndexOf(item) / (lblHourList.Count - 1);
-                DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
-                TimeSpan timeSpan = datetime.to - datetime.from;
-
-                // 일간 확인
-                bool isDailyMode = timeSpan.TotalDays <= 1.0f;
-
-                if (isDailyMode)
-                {
-                    // 일간 모드: 오늘=시간만, 어제=날짜+시간
-                    DateTime today = DateTime.Now.Date;
-                    bool isToday = dt.Date == today;
-
-                    if (isToday)
-                        item.text = dt.ToString("HH:mm");           // 오늘: 시간만
-                    else
-                        item.text = dt.ToString("MM-dd HH:mm");    // 어제: 날짜+시간
-                }
-                else
-                {
-                    // 주간 모드
-                    if (timeSpan.TotalDays < 4f)
-                        item.text = dt.ToString("MM-dd HH:mm");
-                    else
-                        item.text = dt.ToString("yy-MM-dd\nHH:mm");
-                }
             });
         }
 
