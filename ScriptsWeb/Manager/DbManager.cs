@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 namespace Onthesys.WebBuild
@@ -153,20 +155,27 @@ namespace Onthesys.WebBuild
         }
         IEnumerator GetMeasureLogFunc(DateTime fromDt, DateTime toDt, Action<List<MeasureModel>> callback)
         {
-            //fromDt = toDt.AddMinutes(-5);
             var query = $@"EXEC GET_MEASURE_TIME_RANGE_WHOLE
                 @table_name = 'measure_log',
                 @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
                 @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
                 @element_count = 26,
                 @default_value = 0.0;";
-            
-            //Debug.Log("Get Func" + query);
+
             yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
             {
-                Debug.Log("GetMeasureLogFunc : " + result);
+
+                //Debug.Log("GetSensorDataFunc : " + result);
                 var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
                 callback(wrapper.items);
+
+                //WEBGL에서는 ... 무조건 단일 쓰레드...
+                //List<MeasureModel> parsed = null;
+                //Task.Run(() => 
+                //    parsed = JsonUtility.FromJson<MeasureModelList>(result).items
+                //).ContinueWith(_ => 
+                //    UnityMainThreadDispatcher.Instance().Enqueue(() => callback(parsed))
+                //);
             });
         }
         IEnumerator GetMeasureRecentFunc(Action<List<MeasureModel>> callback)
@@ -357,7 +366,8 @@ namespace Onthesys.WebBuild
                  UPDATE WEB_DP.dbo.sensor 
                  SET 
                      threshold_warning = {sensor.threshold_warning}, 
-                     threshold_serious = {sensor.threshold_serious}
+                     threshold_serious = {sensor.threshold_serious},
+                     is_fixing = '{sensor.is_fixing}'
                  WHERE 
                      sensor_id = {sensor.sensor_id}";
 
@@ -365,7 +375,7 @@ namespace Onthesys.WebBuild
                 {
                     if (result.Contains("Error"))
                     {
-                        callback(false, $"임계값 업데이트 실패: {result}");
+                        callback(false, $"임계값 및 점검 여부 업데이트 실패: {result}");
                     }
                     else
                     {

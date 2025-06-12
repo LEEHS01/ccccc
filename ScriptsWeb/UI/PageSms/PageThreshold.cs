@@ -49,6 +49,8 @@ public class PageThreshold : MonoBehaviour
 
     private void OnResponseThresholdUpdate(object obj)
     {
+        btnSave.interactable = true;
+
         if (obj is not (bool isSucceed, string message)) return;
 
         if (isSucceed)
@@ -101,6 +103,8 @@ public class PageThreshold : MonoBehaviour
             Debug.LogWarning("모든 항목이 올바른 경우에만 저장할 수 있습니다!");
             return;
         }
+
+        btnSave.interactable = false;
 
         // 임계값 업데이트 요청
         UiManager.Instance.Invoke(UiEventType.RequestThresholdUpdate, updatedSensors);

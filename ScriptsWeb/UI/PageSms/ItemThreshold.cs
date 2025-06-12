@@ -14,6 +14,7 @@ public class ItemThreshold : MonoBehaviour
     SensorModel sensorData;
     TMP_Text lblSensorName;
     TMP_InputField txbWarningValue, txbSeriousValue;
+    Toggle tglIsFixing;
 
     [SerializeField] public int sensorId;
     public readonly static (float max, float min) allowedRange = (3000f, 0f); // 허용된 임계값 범위
@@ -24,6 +25,7 @@ public class ItemThreshold : MonoBehaviour
         lblSensorName = transform.Find("txtSensorname").GetComponent<TMP_Text>();
         txbWarningValue = transform.Find("InputWarningvalue").GetComponent<TMP_InputField>();
         txbSeriousValue = transform.Find("InputSeriousvalue").GetComponent<TMP_InputField>();
+        tglIsFixing = transform.Find("tglIsFixing").GetComponent<Toggle>();
     }
 
     // 지정된 sensorId로 데이터 로드
@@ -51,6 +53,7 @@ public class ItemThreshold : MonoBehaviour
         lblSensorName.text = sensor.sensor_name;
         txbWarningValue.text = sensor.threshold_warning.ToString("F1");
         txbSeriousValue.text = sensor.threshold_serious.ToString("F1");
+        tglIsFixing.SetIsOnWithoutNotify(sensor.is_fixing);
     }
 
     public SensorModel GetUpdatedSensorData()
@@ -84,7 +87,7 @@ public class ItemThreshold : MonoBehaviour
                 threshold_warning = warningValue,
                 threshold_serious = seriousValue,
                 is_using = sensorData.is_using,
-                is_fixing = sensorData.is_fixing
+                is_fixing = tglIsFixing.isOn
             };
 
             return updatedSensor;

@@ -12,6 +12,7 @@ using UnityEngine.UI;
 
 public class PageSmsRegister : MonoBehaviour
 {
+    ModelProvider modelProvider => UiManager.Instance.modelProvider;
     TMP_InputField txbName, txbPhoneNumber;
     TMP_Dropdown ddlSensorselect, ddlLevelselect;
     Button btnConfirm, btnCancel;
@@ -53,7 +54,7 @@ public class PageSmsRegister : MonoBehaviour
 
         if (sensors != null && sensors.Count > 0)
         {
-            foreach (var sensor in sensors)
+            foreach (var sensor in sensors.Where(s => s.sensor_id <= 3))
             {
                 ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name}"));
             }
@@ -85,6 +86,8 @@ public class PageSmsRegister : MonoBehaviour
 
     private void OnResponseSmsRegister(object obj)
     {
+        btnConfirm.interactable = true;
+
         if (obj is not (bool isSucceed, string message)) return;
 
         if (isSucceed) 
@@ -131,6 +134,15 @@ public class PageSmsRegister : MonoBehaviour
             return;
         }
 
+        List<SmsServiceModel> ssms = modelProvider.GetSmsServices();
+        if (ssms.Find(ssm => ssm.phone == txbPhoneNumber.text.Replace("-", string.Empty) && ssm.sensor_id == (ddlSensorselect.value + 1)) != null)
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "해당 센서에 대한 서비스가 이미 등록되어 있어 서비스 등록에 실패했습니다."));
+            return;
+        }
+
+        btnConfirm.interactable = false;
+
         var sensors = UiManager.Instance.modelProvider.GetSensors()
             .GroupBy(s => s.sensor_id)
             .Select(g => g.First())
@@ -144,12 +156,12 @@ public class PageSmsRegister : MonoBehaviour
         SmsServiceModel model = new SmsServiceModel
         {
             name = txbName.text,
-            phone = txbPhoneNumber.text,
+            phone = txbPhoneNumber.text.Replace("-",string.Empty),
             alarm_level = GetTypeFromDropdown().ToDbString(),  
             is_enabled = true,                               
             //board_id = selectedSensor.board_id,              
             sensor_id = selectedSensor.sensor_id,            
-            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  
+            checked_time = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd HH:mm:ss")  
         };
         /*// 생성된 모델 확인 로그 추가
         Debug.Log($"=== 생성된 SMS 모델 ===");

@@ -65,6 +65,9 @@ namespace Onthesys.WebBuild
             dbManager.GetMeasureLog(fromDt, toDt, measureLogs =>
             {
                 this.measureLogs.AddRange(measureLogs);
+                groupedMeasureLogs = measureLogs
+                    .GroupBy(meas => (meas.board_id, meas.sensor_id))
+                    .ToDictionary(g => g.Key, g => g.ToList());
                 completion(2);
             });
 
@@ -100,7 +103,7 @@ namespace Onthesys.WebBuild
             initTryCount++;
             if (initTryCount > 5)
             {
-                UiManager.Instance.Invoke(UiEventType.PopupError,("데이터 불러오기 실패", "데이터를 불러오는데에 실패했습니다. 계속 문제가 발생할 시, 관리자에게 연락하십시오."));
+                UiManager.Instance.Invoke(UiEventType.PopupError,("서버 연결 실패", "DB서버와 연결하는데에 실패했습니다. 문제가 계속 발생할 시, 관리자에게 연락해주십시오."));
                 UiManager.Instance.Invoke(UiEventType.PopupError, new Exception("서버 연결에 실패했습니다. 계속 문제가 발생할 시엔 관리자에게 연락하십시오."));
                 return;
             }
@@ -137,112 +140,60 @@ namespace Onthesys.WebBuild
         {
             if (obj is not (int sensorId, DateTime fromDt, DateTime toDt)) return;
 
-            //measureHistoryLogs.Clear();
-            //alarmStats.Clear();
-
-            //dbManager.GetMeasureHistoryTimeRange(1, sensorId, fromDt, toDt, 50, upperLogs =>
-            //{
-            //    measureHistoryLogs.AddRange(upperLogs);
-
-            //    dbManager.GetMeasureHistoryTimeRange(2, sensorId, fromDt, toDt, 50, lowerLogs =>
-            //    {
-            //        measureHistoryLogs.AddRange(lowerLogs);
-
-            //        dbManager.GetAlarmStatisticTimeRange(fromDt, toDt, stats =>
-            //        {
-            //            alarmStats.AddRange(stats);
-
-            //            uiManager.Invoke(UiEventType.ChangeTrendLineHistory);
-            //        });
-            //    });
-            //});
-
             measureHistoryLogs.Clear();
             alarmStats.Clear();
 
-            bool[] isReady = new bool[3] { false, false, false };
-
-            Action<int> completion = (callbackIdx) =>
+            Action EndJob = () =>
             {
-                isReady[callbackIdx] = true;
-                if (isReady[0] && isReady[1] && isReady[2])
-                    uiManager.Invoke(UiEventType.ChangeTrendLineHistory);
+                uiManager.Invoke(UiEventType.ChangeTrendLineHistory);
             };
+            int cMax = 3,c = 0;
+            Action CheckJob = () => { if (++c >= cMax) EndJob(); };
 
             dbManager.GetMeasureHistoryTimeRange(1, sensorId, fromDt, toDt, 50, upperLogs =>
             {
                 measureHistoryLogs.AddRange(upperLogs);
-                completion(0);
+                CheckJob();
             });
 
             dbManager.GetMeasureHistoryTimeRange(2, sensorId, fromDt, toDt, 50, lowerLogs =>
             {
                 measureHistoryLogs.AddRange(lowerLogs);
-                completion(1);
+                CheckJob();
             });
 
             dbManager.GetAlarmStatisticTimeRange(fromDt, toDt, stats =>
             {
                 alarmStats.AddRange(stats);
-                completion(2);
+                CheckJob();
             });
 
         }
 
-        //private void OnRequestSearchInference(object obj)
-        //{
-        //    if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
-
-        //    Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange Started");
-        //    dbManager.GetMeasureInferenceTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
-        //    {
-        //        Debug.LogWarning("dbManager.GetMeasureInferenceTimeRange End");
-        //        measureInference.Clear();
-        //        measureInference.AddRange(logs);
-        //        uiManager.Invoke(UiEventType.ChangeTrendLineInference);
-        //    });
-        //}
-
-        //private void OnRequestSearchDenoised(object obj)
-        //{
-        //    if (obj is not (int boardId, int sensorId, DateTime fromDt, DateTime toDt)) return;
-
-        //    Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange Started");
-        //    dbManager.GetMeasureDenoiseTimeRange(boardId, sensorId, fromDt, toDt, 50, logs =>
-        //    {
-        //        Debug.LogWarning("dbManager.GetMeasureDenoiseTimeRange End");
-        //        measureDenoised.Clear();
-        //        measureDenoised.AddRange(logs);
-        //        uiManager.Invoke(UiEventType.ChangeTrendLineDenoised);
-        //    });
-        //}
-
         private void OnVerificationRequest(object obj) 
         {
             if (obj is not string password) return;
+
             dbManager.GetCertification(password, result =>
             {
-                if (result.is_succeed == true)
-                {
-                    verificatedPassword = password;
-                    verificatedCode = result.auth_code;
-
-                    dbManager.GetSmsServiceList(datas =>
-                    {
-                        smsServices.Clear();
-                        smsServices.AddRange(datas);
-                        Debug.Log($"SMS 서비스 개수: {(result.is_succeed, result.auth_code)} / ({result.is_succeed}, {result.auth_code})");
-                        uiManager.Invoke(UiEventType.ResponseVerification, (result.is_succeed, result.auth_code));
-                    });
-                }
-                else 
+                if (result.is_succeed != true)
                 {
                     Debug.LogError($"인증 실패: {result.message}");
                     uiManager.Invoke(UiEventType.ResponseVerification, (result.is_succeed, result.auth_code));
+                    return;
                 }
+
+                verificatedPassword = password;
+                verificatedCode = result.auth_code;
+
+                dbManager.GetSmsServiceList(datas =>
+                {
+                    smsServices.Clear();
+                    smsServices.AddRange(datas);
+                    Debug.Log($"SMS 서비스 개수: {(result.is_succeed, result.auth_code)} / ({result.is_succeed}, {result.auth_code})");
+                    uiManager.Invoke(UiEventType.ResponseVerification, (result.is_succeed, result.auth_code));
+                });
             });
-            //디버그용 성공 알람 
-            //uiManager.Invoke(UiEventType.ResponseVerification, (true, "ThisIsTestVerificationCode"));
         }
 
         bool isWeek = false;
@@ -253,9 +204,12 @@ namespace Onthesys.WebBuild
             DateTime toDt = DateTime.UtcNow.AddHours(9);
             DateTime fromDt = DateTime.UtcNow.AddHours(9).AddDays(isWeek? -7 : -1);
 
-            dbManager.GetMeasureLog(fromDt, toDt, measureLogs => {
+            dbManager.GetMeasureLog(fromDt, toDt,  measureLogs =>  {
                 this.measureLogs.Clear();
                 this.measureLogs.AddRange(measureLogs);
+                groupedMeasureLogs = measureLogs
+                    .GroupBy(meas => (meas.board_id, meas.sensor_id))
+                    .ToDictionary(g => g.Key, g => g.ToList());
 
                 UiManager.Instance.Invoke(UiEventType.ChangeTrendLine);
             });
@@ -304,7 +258,8 @@ namespace Onthesys.WebBuild
         {
             if (obj is not List<int> serviceIds) return;
 
-            Action EndJob = ()=> {
+            Action EndJob = () =>
+            {
                 smsServices.RemoveAll(service => serviceIds.Contains(service.service_id));
                 UiManager.Instance.Invoke(UiEventType.ResponseSmsUnregister, (true, "성공적으로 삭제되었습니다."));
                 UiManager.Instance.Invoke(UiEventType.PopupError, ("삭제 성공", "SMS 서비스가 성공적으로 삭제되었습니다."));
@@ -325,33 +280,32 @@ namespace Onthesys.WebBuild
 
              dbManager.UpdateSensorThresholds(updatedSensors, (isSuccess, message) =>
              {
-                 if (isSuccess)
+                 if (!isSuccess)
                  {
-                      //로컬 센서 데이터 업데이트
-                     foreach (var updatedSensor in updatedSensors)
-                     {
-                         var localSensor = sensors.Find(s =>
-                             s.board_id == updatedSensor.board_id &&
-                             s.sensor_id == updatedSensor.sensor_id);
-
-                         if (localSensor != null)
-                         {
-                             localSensor.threshold_warning = updatedSensor.threshold_warning;
-                             localSensor.threshold_serious = updatedSensor.threshold_serious;
-                         }
-                     }
-
-                      //UI에 성공 알림
-                     uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (true, "임계값이 성공적으로 저장되었습니다."));
-
-                      //센서 데이터 변경 알림
-                     uiManager.Invoke(UiEventType.ChangeSensorData);
-                 }
-                 else
-                 {
-                      //UI에 실패 알림
                      uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (false, message));
+                     return;
                  }
+
+                //로컬 센서 데이터 업데이트
+                foreach (var updatedSensor in updatedSensors)
+                {
+                    var localSensors = sensors.FindAll(s =>
+                        s.sensor_id == updatedSensor.sensor_id);
+
+                    foreach (var localSensor in localSensors)
+                        if (localSensor != null)
+                        {
+                            localSensor.threshold_warning = updatedSensor.threshold_warning;
+                            localSensor.threshold_serious = updatedSensor.threshold_serious;
+                            localSensor.is_fixing = updatedSensor.isFixing;
+                        }
+                }
+
+                //UI에 성공 알림
+                uiManager.Invoke(UiEventType.ResponseThresholdUpdate, (true, "임계값이 성공적으로 저장되었습니다."));
+
+                //센서 데이터 변경 알림
+                uiManager.Invoke(UiEventType.ChangeSensorData);
              });
          }
         #endregion [EventListener]
@@ -404,6 +358,8 @@ namespace Onthesys.WebBuild
         /// 메인 화면 트렌드에서 표시하기 위한 측정값들
         /// </summary>
         List<MeasureModel> measureLogs = new();
+
+        Dictionary<(int boardId, int sensorId), List<MeasureModel>> groupedMeasureLogs = new();
         /// <summary>
         /// 기록 조회에서 표시하기 위한 측정값들
         /// </summary>
@@ -441,9 +397,9 @@ namespace Onthesys.WebBuild
 
         #region [ModelProvider]
         public List<MeasureModel> GetMeasureLogBySensor(int boardId, int sensorId)
-            => measureLogs.Where(meas => meas.board_id == boardId && meas.sensor_id == sensorId).ToList();
+            => groupedMeasureLogs.TryGetValue((boardId, sensorId), out var measures) ? measures : new List<MeasureModel>();
 
-        public List<MeasureModel> GetMeasureLogList() => new(measureLogs);
+        public List<MeasureModel> GetMeasureLogList() => measureLogs;
 
         public MeasureModel GetMeasureRecentBySensor(int boardId, int sensorId)
             => measureRecents.Find(meas => meas.board_id == boardId && meas.sensor_id == sensorId);

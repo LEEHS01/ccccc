@@ -109,7 +109,7 @@ namespace Onthesys.WebBuild
             var recentModel = modelProvider.GetMeasureRecentBySensor(boardId, sensorId);
             if (recentModel != null)
             {
-                return recentModel.MeasuredTime;
+                return recentModel.MeasuredTime.AddHours(9);
             }
 
             return DateTime.Now;
@@ -137,8 +137,8 @@ namespace Onthesys.WebBuild
             //0610 수정       
 
             TimeSpan delayment = DateTime.UtcNow.AddHours(9) - GetMaintenanceStartTime();
-            Debug.Log($"[IndicatorMeasure] Delayment for sensor {sensorData.sensor_name} (Board {boardId}, Sensor {sensorId}): {delayment.TotalMinutes} minutes");
-            if (sensorData.isFixing || delayment > new TimeSpan(0,1,0))//테스트로 1분 지연을 임계치로
+            //Debug.Log($"[IndicatorMeasure] Delayment for sensor {sensorData.sensor_name} (Board {boardId}, Sensor {sensorId}): {delayment.TotalMinutes} minutes");
+            if (sensorData.isFixing || delayment > new TimeSpan(0,5,0)) //테스트로 1분 지연을 임계치로
             {
                 pnlCoverDelayedDate.gameObject.SetActive(true);
                 DateTime maintenanceTime = GetMaintenanceStartTime();
@@ -154,85 +154,11 @@ namespace Onthesys.WebBuild
                 pnlCoverDelayedDate.gameObject.SetActive(false);
             }
 
-                //lblProgressMax.text = lblValueMax.text = "" + sensorData.threshold_critical;
-                //lblProgressRecent.text = lblValueRecent.text = "" + measuredValue.ToString("0.0");
+            DOVirtual.Float(float.Parse(lblValueRecent.text), measuredValue, 0.4f, value =>
+            {
+                lblValueRecent.text = value.ToString("F1"); // 소수점 첫째자리
+            });
 
-                DOVirtual.Float(float.Parse(lblValueRecent.text), measuredValue, 0.4f, value =>
-                {
-                    //lblProgressRecent.text = value.ToString("F2"); // 소수점 둘째자리까지
-                    lblValueRecent.text = value.ToString("F1"); // 소수점 첫째자리
-                });
-
-            /* DOVirtual.Float(0f, measuredValue, 0.4f, value =>
-             {
-                 lblValueRecent.text = value.ToString("F1");
-             });
- */
-            //float denominator = Mathf.Max(sensorData.threshold_critical, 1f);
-            //float clampedRatio = Mathf.Min(measuredValue / denominator, 1f);
-            //imgProgressGauge.DOFillAmount (clampedRatio, 0.4f);
-
-            //StatusType status = modelProvider.GetStatusBySensor(boardId, sensorId);
-            //imgProgressGauge.DOColor(statusColorDic[status], 0.4f);
-            //lblProgressRecent.DOColor(statusColorDic[status], 0.4f);
-
-
-
-            //RectTransform markerParent = imgMarkerList.First().rectTransform.parent.GetComponent<RectTransform>();
-            //LayoutRebuilder.ForceRebuildLayoutImmediate(markerParent);
-
-            //List<(StatusType status, string objName, float threshold)> dataGrid = new()
-            //{
-            //    (StatusType.SERIOUS, "Serious", sensorData.threshold_serious),
-            //    (StatusType.WARNING, "Warning", sensorData.threshold_warning),
-            //    (StatusType.CRITICAL, "Critical", sensorData.threshold_critical),
-            //};
-
-            //foreach (var data in dataGrid)
-            //{
-            //    Image imgMarker = imgMarkerList.Find(img => img.name == data.objName);
-            //    imgMarker.color = statusColorDic[data.status];
-            //    float ratio = data.threshold / sensorData.threshold_critical;
-            //    float angle = 270 * (1f - ratio) + 45;
-            //    imgMarker.rectTransform.eulerAngles = new(0, 0, angle);
-
-            //    float distance = markerParent.rect.width / 2f;
-            //    imgMarker.rectTransform.localPosition =
-            //        new Vector3(
-            //        (float)Math.Sin(angle / 180f * Mathf.PI),
-            //        -(float)Math.Cos(angle / 180f * Mathf.PI), 0) * distance;
-            //    imgMarker.rectTransform.anchoredPosition -= new Vector2(0, 17 * markerParent.rect.height / 200);
-
-            //}
-
-            //foreach(Transform childTransform in markerParent)
-            //{
-            //    RectTransform child = childTransform as RectTransform;
-            //    if (child == null) continue;
-            //    if (markerParent.GetComponent<LayoutGroup>() != null) continue;
-
-
-            //    Vector2 parentSize = markerParent.rect.size;
-
-            //    // 자식 위치/크기를 기준으로 anchorMin/max 계산
-            //    Vector2 newAnchorMin = new Vector2(
-            //        (child.localPosition.x - child.rect.width * child.pivot.x) / parentSize.x + markerParent.pivot.x,
-            //        (child.localPosition.y - child.rect.height * child.pivot.y) / parentSize.y + markerParent.pivot.y
-            //    );
-
-            //    Vector2 newAnchorMax = new Vector2(
-            //        (child.localPosition.x + child.rect.width * (1 - child.pivot.x)) / parentSize.x + markerParent.pivot.x,
-            //        (child.localPosition.y + child.rect.height * (1 - child.pivot.y)) / parentSize.y + markerParent.pivot.y
-            //    );
-
-            //    // 앵커 설정
-            //    child.anchorMin = newAnchorMin;
-            //    child.anchorMax = newAnchorMax;
-
-            //    // 마진 초기화 (Top/Bottom/Left/Right = 0)
-            //    child.offsetMin = Vector2.zero;
-            //    child.offsetMax = Vector2.zero;
-            //}
         }
     }
 }

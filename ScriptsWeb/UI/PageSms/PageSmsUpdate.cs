@@ -60,7 +60,7 @@ public class PageSmsUpdate : MonoBehaviour
             .ToList();
 
 
-        foreach (var sensor in sensors)
+        foreach (var sensor in sensors.Where(s => s.sensor_id <= 3))
         {
             ddlSensorselect.options.Add(new TMP_Dropdown.OptionData($"{sensor.sensor_name}"));
         }
@@ -126,6 +126,8 @@ public class PageSmsUpdate : MonoBehaviour
 
     private void OnResponseSmsUpdate(object obj)
     {
+        btnConfirm.interactable = true;
+
         if (obj is not (bool isSucceed, string message)) return;
 
         if (isSucceed)
@@ -189,6 +191,17 @@ public class PageSmsUpdate : MonoBehaviour
             return;
         }
 
+
+        List<SmsServiceModel> ssms = modelProvider.GetSmsServices();
+        if (ssms.Find(ssm => ssm.phone == txbPhoneNumber.text.Replace("-", string.Empty) && ssm.sensor_id == (ddlSensorselect.value + 1)) != null)
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "해당 센서에 대한 서비스가 이미 등록되어 있어 서비스 등록에 실패했습니다."));
+            return;
+        }
+
+
+        btnConfirm.interactable = false;
+
         var sensors = modelProvider.GetSensors()
          .GroupBy(s => s.sensor_id)
          .Select(g => g.First())
@@ -202,10 +215,10 @@ public class PageSmsUpdate : MonoBehaviour
             service_id = data.service_id,
             alarm_level = GetTypeFromDropdown().ToDbString(),
             name = txbName.text,
-            phone = txbPhoneNumber.text,
+            phone = txbPhoneNumber.text.Replace("-", string.Empty),
             is_enabled = data.is_enabled,                    //0605 isEnabled → is_enabled
             sensor_id = selectedSensor.sensor_id,            //0605 수정
-            checked_time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")  // 0605 수정
+            checked_time = data.checked_time
         }));
     }
     void OnClickCancel()

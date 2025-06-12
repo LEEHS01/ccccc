@@ -73,6 +73,8 @@ public class PageSmsUnregister : MonoBehaviour
 
     private void OnResponseSmsUnregister(object obj)
     {
+        btnConfirm.interactable = true;
+
         if (obj is not (bool isSucceed, string message)) return;
 
         if (isSucceed)
@@ -93,7 +95,16 @@ public class PageSmsUnregister : MonoBehaviour
     }
     void OnClickConfirm()
     {
+
         List<int> serviceIdList = smsItems.Where(item => item.isChecked).Select(item => item.data.service_id).ToList();
+
+        if (serviceIdList.Count == 0)
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("삭제 실패", "삭제할 항목을 선택해주세요."));
+            return; 
+        }
+
+        btnConfirm.interactable = false;
 
         UiManager.Instance.Invoke(UiEventType.RequestSmsUnregister, serviceIdList);
     }

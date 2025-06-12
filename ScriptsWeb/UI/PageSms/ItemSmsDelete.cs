@@ -16,12 +16,13 @@ public class ItemSmsDelete : MonoBehaviour
 
     Toggle tglIsChecked;
 
-    TMP_Text lblName, lblPhone, lblSensor;   //임계값
+    TMP_Text lblName, lblPhone, lblSensor, lblLevel;   //임계값
     private void Start()
     {
         lblName = transform.Find("GameObject (1)").GetComponentInChildren<TMP_Text>();
         lblPhone = transform.Find("GameObject (2)").GetComponentInChildren<TMP_Text>();
-        lblSensor = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>(); //임계값
+        lblSensor = transform.Find("GameObject (3)").GetComponentInChildren<TMP_Text>();    //센서명
+        lblLevel = transform.Find("GameObject (4)").GetComponentInChildren<TMP_Text>();    //임계수준
         tglIsChecked = transform.Find("Toggle").GetComponent<Toggle>();
     }
 
@@ -37,6 +38,9 @@ public class ItemSmsDelete : MonoBehaviour
         string sensorName = GetSensorDisplayText(data.sensor_id);
         lblSensor.text = sensorName;
 
+        string levelText = GetLevelDisplayText(data.alarm_level);
+        lblLevel.text = levelText;
+
         tglIsChecked.onValueChanged.AddListener(OnToggleEnabled);
         tglIsChecked.isOn = false;
     }
@@ -50,6 +54,16 @@ public class ItemSmsDelete : MonoBehaviour
             return $"센서{sensorId}";
 
         return $"{sensor.sensor_name}"; 
+    }
+
+    private string GetLevelDisplayText(string alarmLevel)
+    {
+        return alarmLevel switch
+        {
+            "Warning" => "경보",
+            "Serious" => "경계",
+            _ => "-"
+        };
     }
 
     void OnToggleEnabled(bool isChecked) => this.isChecked = isChecked;

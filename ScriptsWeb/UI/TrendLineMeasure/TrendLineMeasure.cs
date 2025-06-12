@@ -1,14 +1,11 @@
 ﻿
 using DG.Tweening;
-using Onthesys.ExeBuild;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using static Unity.VisualScripting.Metadata;
 
 namespace Onthesys.WebBuild
 {
@@ -157,7 +154,7 @@ namespace Onthesys.WebBuild
         }
         #endregion
 
-        void UpdateUi() 
+        void UpdateUi()
         {
             if (sensorData is null) return;
 
@@ -175,7 +172,6 @@ namespace Onthesys.WebBuild
             //Debug.Log($"{sensorLogs.Count} != {dots.Count - dotsMargin}?");
             if (sensorLogs.Count != dots.Count) return;
             //Debug.Log($"{sensorLogs.Count} == {dots.Count - dotsMargin}!");
-
             UpdateTrendLine();
         }
     
@@ -264,7 +260,7 @@ namespace Onthesys.WebBuild
 
         }
 
-        void UpdateTimeLabels()
+        /*void UpdateTimeLabels()
         {
             lblHourList.ForEach(item =>
             {
@@ -278,6 +274,39 @@ namespace Onthesys.WebBuild
                     item.text = dt.ToString("MM-dd HH:mm");
                 else
                     item.text = dt.ToString("yy-MM-dd");
+            });
+        }*/
+
+        void UpdateTimeLabels()
+        {
+            lblHourList.ForEach(item =>
+            {
+                float ratio = (float)lblHourList.IndexOf(item) / (lblHourList.Count - 1);
+                DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
+                TimeSpan timeSpan = datetime.to - datetime.from;
+
+                // 일간 확인
+                bool isDailyMode = timeSpan.TotalDays <= 1.0f;
+
+                if (isDailyMode)
+                {
+                    // 일간 모드: 오늘=시간만, 어제=날짜+시간
+                    DateTime today = DateTime.Now.Date;
+                    bool isToday = dt.Date == today;
+
+                    if (isToday)
+                        item.text = dt.ToString("HH:mm");           // 오늘: 시간만
+                    else
+                        item.text = dt.ToString("MM-dd HH:mm");    // 어제: 날짜+시간
+                }
+                else
+                {
+                    // 주간 모드
+                    if (timeSpan.TotalDays < 4f)
+                        item.text = dt.ToString("MM-dd HH:mm");
+                    else
+                        item.text = dt.ToString("yy-MM-dd\nHH:mm");
+                }
             });
         }
 
@@ -305,6 +334,7 @@ namespace Onthesys.WebBuild
                 //if (i != dots.Count - 1) childRect.anchoredPosition += new Vector2(difVec.x, 0f);
 
                 childRect.DOAnchorPos(newPos, 0.4f);
+                //childRect.anchoredPosition = newPos;
 
                 //childRect.anchorMax = childRectBefore.anchorMax;
                 //childRect.anchorMin = childRectBefore.anchorMin;

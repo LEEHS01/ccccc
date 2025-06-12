@@ -26,6 +26,8 @@ public class PageSmsAuth : MonoBehaviour
 
     private void OnVerificationResponse(object obj)
     {
+        btnConfirm.interactable = true;
+
         //Debug.Log("OnVerificationResponse start");
         if (obj is not (bool isVerified, string verificationKey)) return;
         //Debug.Log("OnVerificationResponse type good");
@@ -42,6 +44,12 @@ public class PageSmsAuth : MonoBehaviour
 
     public void OnClick()
     {
+        if (string.IsNullOrWhiteSpace(txbPassword.text))
+        {
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("로그인 실패", "관리자 암호를 입력해주세요."));
+            return;
+        }
+        btnConfirm.interactable = false;
         Debug.Log("OnClick RequestVerification");
         UiManager.Instance.Invoke(UiEventType.RequestVerification, txbPassword.text);
     }
