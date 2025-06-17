@@ -24,8 +24,23 @@ namespace Onthesys.WebBuild
             new Vector2(dot.localPosition.x, dot.localPosition.y)
           + new Vector2(dot.parent.localPosition.x, dot.parent.localPosition.y)
                 ).ToList();
-        float MaxValue => Mathf.Max(sensorLogs.Select(log => log.measured_value).Max(), 0.1f);
-        
+        //float MaxValue => Mathf.Max(sensorLogs.Select(log => log.measured_value).Max(), 0.1f);
+
+        float GetFixedMaxValue()
+        {
+            if (sensorData == null) return 300f;
+
+            return sensorData.sensor_id switch
+            {
+                1 => 300f,   // 센서1: 0~300 범위
+                2 => 300f,   // 센서2: 0~300 범위  
+                3 => 4000f,  // 센서3: 0~4000 범위
+                _ => 300f    // 기본값
+            };
+        }
+
+        float MaxValue => GetFixedMaxValue();
+
         //Components
         TMP_Text /*lblName,*/ lblIsFixing;
         List<RectTransform> dots = new();
@@ -176,14 +191,15 @@ namespace Onthesys.WebBuild
             //Debug.Log($"{sensorLogs.Count} == {dots.Count - dotsMargin}!");
             UpdateTrendLine();
         }
-    
+
+ 
+
         void UpdateAmountLabels()
         {
-
             if (sensorLogs.Count < 1) return;
 
-            float maxVal = sensorLogs.Select(val => Mathf.Abs(val.measured_value)).Max();
-
+            // 고정된 최대값 사용 (자동 계산 제거)
+            float maxVal = GetFixedMaxValue();
 
             foreach (var lbl in lblAmountList)
             {
@@ -192,75 +208,34 @@ namespace Onthesys.WebBuild
                     value => lbl.text = value.ToString("F0"),
                     val, 0.4f);
             }
-
-
-            //if (sensorLogs.Count < 1) return;
-            //if (imgAmountList.Count != lblAmountList.Count && lblAmountList.Count != 5) throw new Exception("TrendLineMeasure - UpdateAmountLabels - chartGrid 노트의 구성 요소가 부적절하여 초기화를 진행할 수 없습니다.");
-
-            ////float maxValue = Mathf.Max(sensorLogs.Select(log => log.measured_value).Max(), sensorData.threshold_critical);
-
-
-            ////실제 최대값
-            //if (MaxValue != sensorData.threshold_critical)
-            //{
-            //    lblAmountList.First().text = MaxValue.ToString("F0"); ;
-            //    lblAmountList.First().color = statusColorDic[StatusType.ERROR];
-            //    imgAmountList.First().color = statusColorDic[StatusType.ERROR];
-
-            //}
-            //else
-            //{
-            //    lblAmountList[0].text = "";
-            //    lblAmountList.First().color = new Color(0,0,0,0);
-            //    imgAmountList.First().color = new Color(0, 0, 0, 0);
-            //}
-
-            ////영점
-            //lblAmountList[lblAmountList.Count - 1].text = "0";
-
-
-            ////범위
-            //RectTransform
-            //    lblFrom = lblAmountList.Last().rectTransform,
-            //    lblTo = lblAmountList.First().rectTransform,
-            //    imgFrom = imgAmountList.Last().rectTransform,
-            //    imgTo = imgAmountList.First().rectTransform;
-
-            //((Vector2 min, Vector2 max, Vector2 pos) from, (Vector2 min, Vector2 max, Vector2 pos) to)
-            //    labelAnchorPair = (
-            //        (lblFrom.anchorMin, lblFrom.anchorMax, lblFrom.anchoredPosition),
-            //        (lblTo.anchorMin, lblTo.anchorMax, lblTo.anchoredPosition)),
-            //    imageAnchorPair = (
-            //        (imgFrom.anchorMin, imgFrom.anchorMax, imgFrom.anchoredPosition),
-            //        (imgTo.anchorMin, imgTo.anchorMax, imgTo.anchoredPosition));
-
-            ////임계값들 설정
-            //List <(StatusType status, float threshold, int tIdx)> dataGrid = new()
-            //{
-            //    //(StatusType.NORMAL, 0f, 4),
-            //    (StatusType.SERIOUS, sensorData.threshold_serious, 3),
-            //    (StatusType.WARNING, sensorData.threshold_warning, 2),
-            //    (StatusType.CRITICAL, sensorData.threshold_critical, 1),
-            //};
-            //foreach (var data in dataGrid) 
-            //{
-            //    TMP_Text lblAmount = lblAmountList[data.tIdx];
-            //    Image imgAmount = imgAmountList[data.tIdx];
-            //    float ratio = data.threshold / MaxValue;
-
-            //    lblAmount.rectTransform.anchorMin = Vector2.Lerp(labelAnchorPair.from.min, labelAnchorPair.to.min, ratio);
-            //    lblAmount.rectTransform.anchorMax = Vector2.Lerp(labelAnchorPair.from.max, labelAnchorPair.to.max, ratio);
-            //    lblAmount.rectTransform.anchoredPosition = Vector2.Lerp(labelAnchorPair.from.pos, labelAnchorPair.to.pos, ratio);
-            //    lblAmount.color = statusColorDic[data.status];
-            //    lblAmount.text = data.threshold.ToString("F0");
-
-            //    imgAmount.rectTransform.anchorMin = Vector2.Lerp(imageAnchorPair.from.min, imageAnchorPair.to.min, ratio);
-            //    imgAmount.rectTransform.anchorMax = Vector2.Lerp(imageAnchorPair.from.max, imageAnchorPair.to.max, ratio);
-            //    imgAmount.rectTransform.anchoredPosition = Vector2.Lerp(imageAnchorPair.from.pos, imageAnchorPair.to.pos, ratio);
-            //    imgAmount.color = statusColorDic[data.status];
-            //}
-
         }
+
+        /*void UpdateTimeLabels()
+        {
+            // 👈 캔버스 크기 기반 폰트 크기 계산 (layoutTemp 방식)
+            Rect canvasRect = GetComponentInParent<Canvas>().GetComponent<RectTransform>().rect;
+            Vector2 canvasSize = new(canvasRect.width, canvasRect.height);
+
+            // layoutTemp.cs의 threshold 방식 적용
+            float threshold = 1200f; // layoutTemp와 동일한 기준
+            float fontSize = canvasSize.x > threshold ? 1f : 8f;
+
+            lblHourList.ForEach(item =>
+            {
+                item.fontSize = fontSize; // 👈 동적 폰트 크기 적용
+
+                float ratio = (float)lblHourList.IndexOf(item) / (lblHourList.Count - 1);
+                DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
+                TimeSpan timeSpan = datetime.to - datetime.from;
+
+                if (timeSpan.TotalDays < 0.9f)
+                    item.text = dt.ToString("HH:mm");
+                else if (timeSpan.TotalDays < 4f)
+                    item.text = dt.ToString("MM-dd HH:mm");
+                else
+                    item.text = dt.ToString("yy-MM-dd");
+            });
+        }*/
 
         void UpdateTimeLabels()
         {
@@ -280,7 +255,7 @@ namespace Onthesys.WebBuild
             });
         }
 
-        void UpdateTrendLine() 
+        void UpdateTrendLine()
         {
             RectTransform parentRect = transform.Find("Chart_Dots").GetComponent<RectTransform>();
             Vector2 parentSize = parentRect.rect.size;
@@ -294,7 +269,10 @@ namespace Onthesys.WebBuild
                 RectTransform childRect = dots[i];
                 //RectTransform childRectBefore = dots[i - 1];
                 float measuredValue = sensorLogs[i].measured_value;
-                float measuredRatio = measuredValue / MaxValue;
+                //float measuredRatio = measuredValue / MaxValue;
+
+                // 고정된 최대값으로 비율 계산
+                float measuredRatio = measuredValue / GetFixedMaxValue();
 
                 float targetY = Mathf.Lerp(bottomY, topY, measuredRatio);
 

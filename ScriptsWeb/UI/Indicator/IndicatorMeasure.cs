@@ -22,6 +22,8 @@ namespace Onthesys.WebBuild
         SensorModel sensorData;
         float measuredValue;
         GameObject pnlCoverDelayedDate;//0610 수정
+        Image backgroundImage;
+        float originalAlpha;
 
         //Components
         TMP_Text lblName, /*lblProgressRecent, lblProgressMax,*/ lblValueRecent,/* lblValueMax*/ /*lblIsFixing*/ lblUnit;
@@ -64,6 +66,8 @@ namespace Onthesys.WebBuild
 
             //0610 수정
             pnlCoverDelayedDate = transform.Find("pnlCover").gameObject;
+            backgroundImage = pnlCoverDelayedDate.transform.Find("background").GetComponent<Image>();
+            originalAlpha = backgroundImage.color.a;
             lblCoverDate = pnlCoverDelayedDate.transform.Find("txtDate").GetComponent<TMP_Text>();
             lblCoverTime = pnlCoverDelayedDate.transform.Find("txtTime").GetComponent<TMP_Text>();
             lblCoverTitle = pnlCoverDelayedDate.transform.Find("txtTitle").GetComponent<TMP_Text>();
@@ -125,15 +129,14 @@ namespace Onthesys.WebBuild
             {
                 lblUnit.text = sensorData.unit;
             }
-            
+
             /*// 테스트용: 특정 센서만 강제로 점검중 표시
             bool testFixing = sensorData.isFixing;
             if (boardId == 1 && sensorId == 1) // 센서1-1 테스트
             {
                 testFixing = true; // 이 센서만 강제로 점검중
-            }
-            maintenancePanel.gameObject.SetActive(testFixing);
-*/
+            }*/
+
             //0610 수정       
 
             TimeSpan delayment = DateTimeKst.Now - GetMaintenanceStartTime();
@@ -147,7 +150,20 @@ namespace Onthesys.WebBuild
                 lblCoverTime.text = maintenanceTime.ToString("HH:mm:ss");
                 lblCoverName.text = $"{sensorData.sensor_name}({(sensorData.board_id == 1 ? "상류" : "하류")})";//0611 센서명 추가
 
-                lblCoverTitle.text = sensorData.isFixing? "센서 점검 중" : "데이터 불러오기 지연";
+                if (sensorData.isFixing)
+                {
+                    lblCoverTitle.text = "센서 점검 중";
+                    // 점검중일 때는 검은색 (또는 어두운 색)
+                    backgroundImage.color = new Color(0f, 0f, 0f, originalAlpha);
+
+                }
+                else
+                {
+                    lblCoverTitle.text = "데이터 불러오기 지연";
+                    // 지연일 때는 빨간색
+                    backgroundImage.color = new Color(1f, 0f, 0f, originalAlpha);
+
+                }
             }
             else 
             {

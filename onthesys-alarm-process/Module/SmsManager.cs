@@ -36,7 +36,7 @@ namespace onthesys_alarm_process.Process
         internal SmsManager(Application app, ISmsHandle smsHandle) : base(app)
         {
             this.smsHandle = smsHandle;
-            interval = 30*60*1000;
+            interval = 100*60*1000;
         }
         protected override Task Process()
         {

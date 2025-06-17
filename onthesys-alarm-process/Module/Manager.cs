@@ -30,8 +30,8 @@ namespace onthesys_alarm_process.Process
             {
                 while (!token.IsCancellationRequested)
                 {
-                    await Task.Delay(interval, token);
                     await Process(); // async가 아니면 Task.Run(() => Process())로 래핑
+                    await Task.Delay(interval, token);
                 }
             }
             catch (TaskCanceledException)

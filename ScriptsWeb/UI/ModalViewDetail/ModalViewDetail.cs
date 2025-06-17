@@ -40,6 +40,27 @@ public class ModalViewDetail : MonoBehaviour
         ddlSelectSensor.SetValueWithoutNotify(idx);
         lblSensorName.text = "" + modelProvider.GetSensors()[idx].sensor_name;
         this.gameObject.SetActive(true);
+
+
+        //// 기존 DatetimeFrom/DateTimeTo 프로퍼티와 동일한 정규화 적용
+        //DateTime now = DateTime.UtcNow.AddHours(9);
+        //DateTime yesterday = now.AddDays(-1);
+
+        //// From: 어제 00:00:00
+        //DateTime normalizedFrom = yesterday.Date;
+
+        //// To: 오늘이면 현재 시각, 아니면 23:59:59
+        //DateTime normalizedTo;
+        //if (now.Date == DateTime.UtcNow.AddHours(9).Date)
+        //{
+        //    normalizedTo = DateTime.UtcNow.AddHours(9); // 현재 시각
+        //}
+        //else
+        //{
+        //    normalizedTo = now.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+        //}
+
+        //UiManager.Instance.Invoke(UiEventType.RequestSearchHistory, (sensorId, normalizedFrom, normalizedTo));
     }
 
     private void OnInitiate(object obj)

@@ -26,7 +26,7 @@ public class PageSms : MonoBehaviour
 
     private void Start()
     {
-        btnNavigateMain = transform.Find("ConHomeBtn").Find("HomeBtn").GetComponent<Button>();
+        btnNavigateMain = transform.Find("HomeBtn").GetComponent<Button>();
         btnNavigateMain.onClick.AddListener(() =>
         {
             UiManager.Instance.Invoke(UiEventType.NavigateMain);

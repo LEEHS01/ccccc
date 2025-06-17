@@ -34,7 +34,7 @@ namespace onthesys_alarm_process.Process
 
         public DbManager(Application app) : base(app)
         {
-            interval = 50*60*1000;
+            interval = 1*60*1000;
         }
         protected override void OnInitiate()
         {

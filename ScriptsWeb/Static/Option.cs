@@ -13,7 +13,7 @@ namespace Onthesys.WebBuild
         public static int TREND_TIME_INTERVAL = 1;
         public static int TREND_TIME_RANGE = 1440;
 
-        public static string URL = "http://192.168.10.236:8080";
+        public static string URL = "http://192.168.10.235:8080";
     }
 
     public static class  DateTimeKst

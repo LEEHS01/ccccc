@@ -168,6 +168,8 @@ namespace Assets.ScriptsWeb.UI
             if (obj is not int sensorId) return;
             this.sensorId = sensorId;
             //Debug.Log("OnSelectSensorWithinTab suc");
+
+            UiManager.Instance.Invoke(UiEventType.RequestSearchHistory, (sensorId, dtFrom, dtTo));
         }
         #endregion
 
