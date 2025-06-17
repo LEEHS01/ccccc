@@ -57,7 +57,7 @@ internal class GetTime : MonoBehaviour
             return "00/00 00:00:00";
 
         //그 중에서 가장 최신 시간 찾기
-        var latestTime = boardData.Max(m => m.MeasuredTime).AddHours(9);
+        var latestTime = boardData.Max(m => m.MeasuredTime);
         // 상류 3개 센서 중 가장 최근에 측정된 시간
 
         return latestTime.ToString("MM/dd HH:mm:ss");

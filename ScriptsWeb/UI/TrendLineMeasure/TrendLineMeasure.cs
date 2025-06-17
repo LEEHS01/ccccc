@@ -142,8 +142,10 @@ namespace Onthesys.WebBuild
             while (sensorLogs.Count > dots.Count)
                 sensorLogs.Remove(sensorLogs.First());
 
-            datetime.from = sensorLogs.First().MeasuredTime;
-            datetime.to = sensorLogs.Last().MeasuredTime;
+            datetime.from = (sensorLogs.Last().MeasuredTime- sensorLogs.First().MeasuredTime > new TimeSpan(50,0,0))? DateTimeKst.Now.AddDays(-7) : DateTimeKst.Now.AddDays(-1);
+            datetime.to= DateTimeKst.Now;
+
+            //Debug.Log($"[TrendLineMeasure] OnChangeTrendLine - boardId: {boardId}, sensorId: {sensorId}, datetime.from: {sensorLogs.First().measured_time}, datetime.to: {sensorLogs.Last().measured_time}");
 
             UpdateUi();
         }
@@ -268,12 +270,13 @@ namespace Onthesys.WebBuild
                 DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
                 TimeSpan timeSpan = datetime.to - datetime.from;
 
-                if (timeSpan.TotalDays < 0.9f)
+                //Debug.Log($"[TrendLineMeasure] UpdateTimeLabels - ratio: {ratio}, dt: {dt}, timeSpan: {timeSpan}");
+                if (timeSpan.TotalDays < 4f)
                     item.text = dt.ToString("HH:mm");
-                else if (timeSpan.TotalDays < 4f)
-                    item.text = dt.ToString("MM-dd HH:mm");
+                //else if (timeSpan.TotalDays < 4f)
+                //    item.text = dt.ToString("MM-dd HH:mm");
                 else
-                    item.text = dt.ToString("yy-MM-dd");
+                    item.text = dt.ToString("MM.dd");
             });
         }
 

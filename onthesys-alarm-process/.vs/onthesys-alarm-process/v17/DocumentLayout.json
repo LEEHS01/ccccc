@@ -3,7 +3,22 @@
   "WorkspaceRootPath": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|c:\\users\\onthesys\\desktop\\abcd\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\smsmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|c:\\users\\onthesys\\desktop\\abcd\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\filtermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\filtermanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\onthesys\\AppData\\Local\\Temp\\.vsdbgsrc\\5e08a674d79a41f3d39b838d58fe38b488ddac908892ba736bd105c37ddef853\\DbManager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\smsmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\smsmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -23,10 +38,6 @@
       "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:library\\ismshandle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\dbmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\model\\measuremodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:model\\measuremodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -37,10 +48,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\uimanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\module\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|solutionrelative:module\\manager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7AA3AEF5-9783-4C35-8385-BE24B91B37E3}|onthesys-alarm-process.csproj|C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\system\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -54,11 +61,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 7,
               "Title": "SMSHandleTest.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Library\\SMSHandleTest.cs",
               "RelativeDocumentMoniker": "Library\\SMSHandleTest.cs",
@@ -71,7 +78,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 8,
               "Title": "ISMSHandle.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Library\\ISMSHandle.cs",
               "RelativeDocumentMoniker": "Library\\ISMSHandle.cs",
@@ -84,34 +91,59 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "SmsManager.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\SmsManager.cs",
               "RelativeDocumentMoniker": "Module\\SmsManager.cs",
               "ToolTip": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\SmsManager.cs",
               "RelativeToolTip": "Module\\SmsManager.cs",
-              "ViewState": "AQIAAHAAAAAAAAAAAAAowOcAAAAAAAAA",
+              "ViewState": "AQIAAB0AAAAAAAAAAAAuwKAAAAAIAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-02T01:18:44.595Z",
-              "IsPinned": true,
-              "EditorCaption": ""
+              "IsPinned": true
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "DbManager.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\DbManager.cs",
               "RelativeDocumentMoniker": "Module\\DbManager.cs",
               "ToolTip": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\DbManager.cs",
               "RelativeToolTip": "Module\\DbManager.cs",
-              "ViewState": "AQIAAE0AAAAAAAAAAAAcwHgAAAAUAAAA",
+              "ViewState": "AQIAAA8AAAAAAAAAAAAAABYAAAAXAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-02T01:33:22.445Z",
-              "IsPinned": true
+              "IsPinned": true,
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 1,
+              "Title": "FilterManager.cs",
+              "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\FilterManager.cs",
+              "RelativeDocumentMoniker": "Module\\FilterManager.cs",
+              "ToolTip": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\FilterManager.cs",
+              "RelativeToolTip": "Module\\FilterManager.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAADwvwAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-16T00:19:56.191Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DbManager.cs",
+              "DocumentMoniker": "C:\\Users\\onthesys\\AppData\\Local\\Temp\\.vsdbgsrc\\5e08a674d79a41f3d39b838d58fe38b488ddac908892ba736bd105c37ddef853\\DbManager.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\AppData\\Local\\Temp\\.vsdbgsrc\\5e08a674d79a41f3d39b838d58fe38b488ddac908892ba736bd105c37ddef853\\DbManager.cs",
+              "ToolTip": "C:\\Users\\onthesys\\AppData\\Local\\Temp\\.vsdbgsrc\\5e08a674d79a41f3d39b838d58fe38b488ddac908892ba736bd105c37ddef853\\DbManager.cs [\uC77D\uAE30 \uC804\uC6A9]",
+              "RelativeToolTip": "..\\..\\..\\..\\..\\AppData\\Local\\Temp\\.vsdbgsrc\\5e08a674d79a41f3d39b838d58fe38b488ddac908892ba736bd105c37ddef853\\DbManager.cs [\uC77D\uAE30 \uC804\uC6A9]",
+              "ViewState": "AQIAANIAAAAAAAAAAAAmwJEAAAAEAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-16T00:09:25.411Z",
+              "EditorCaption": " [\uC77D\uAE30 \uC804\uC6A9]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "UiManager.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\UiManager.cs",
               "RelativeDocumentMoniker": "Module\\UiManager.cs",
@@ -123,7 +155,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "MeasureModel.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Model\\MeasureModel.cs",
               "RelativeDocumentMoniker": "Model\\MeasureModel.cs",
@@ -135,7 +167,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 5,
               "Title": "SmsServiceModel.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Model\\SmsServiceModel.cs",
               "RelativeDocumentMoniker": "Model\\SmsServiceModel.cs",
@@ -147,19 +179,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 3,
               "Title": "Manager.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\Manager.cs",
               "RelativeDocumentMoniker": "Module\\Manager.cs",
               "ToolTip": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Module\\Manager.cs",
               "RelativeToolTip": "Module\\Manager.cs",
-              "ViewState": "AQIAAB0AAAAAAAAAAAD4vxUAAAASAAAA",
+              "ViewState": "AQIAAA0AAAAAAAAAAADwvxIAAAAJAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-02T01:26:06.963Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 6,
               "Title": "SensorModel.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\Model\\SensorModel.cs",
               "RelativeDocumentMoniker": "Model\\SensorModel.cs",
@@ -171,7 +203,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "Application.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\System\\Application.cs",
               "RelativeDocumentMoniker": "System\\Application.cs",
@@ -183,7 +215,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 12,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\onthesys\\Desktop\\ABCD\\onthesys-client-web\\onthesys-client-web\\onthesys-alarm-process\\System\\Program.cs",
               "RelativeDocumentMoniker": "System\\Program.cs",

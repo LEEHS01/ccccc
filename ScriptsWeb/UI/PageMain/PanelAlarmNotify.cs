@@ -59,7 +59,7 @@ public class PanelAlarmNotify : MonoBehaviour
         string newText;
 
         if (alarmTexts.Count == 0) {
-            newText = $"{DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd HH:mm")}  알림 사항 없음";
+            newText = $"{DateTimeKst.Now.ToString("yyyy-MM-dd HH:mm")}  알림 사항 없음";
         }
         else 
         {
@@ -99,7 +99,7 @@ public class PanelAlarmNotify : MonoBehaviour
         StatusType status = alarmLog.GetAlarmLevel();
 
         string res = "";
-        res += alarmLog.OccuredTime.AddHours(-9).ToString("yyyy/MM/dd HH:mm ");
+        res += alarmLog.OccuredTime.ToString("yyyy/MM/dd HH:mm ");
         res += $"[{sensorModel.sensor_name}] ";
         res += 
             //status == StatusType.CRITICAL? "치명" :

@@ -60,8 +60,8 @@ namespace Onthesys.WebBuild
                 completion(1);
             });
 
-            DateTime toDt = DateTime.UtcNow.AddHours(9);
-            DateTime fromDt = DateTime.UtcNow.AddHours(9).AddMinutes(-Option.TREND_TIME_RANGE);
+            DateTime toDt = DateTimeKst.Now;
+            DateTime fromDt = DateTimeKst.Now.AddMinutes(-Option.TREND_TIME_RANGE);
             dbManager.GetMeasureLog(fromDt, toDt, measureLogs =>
             {
                 this.measureLogs.AddRange(measureLogs);
@@ -201,8 +201,8 @@ namespace Onthesys.WebBuild
             if (obj is not bool isWeek) return;
             this.isWeek = isWeek;
 
-            DateTime toDt = DateTime.UtcNow.AddHours(9);
-            DateTime fromDt = DateTime.UtcNow.AddHours(9).AddDays(isWeek? -7 : -1);
+            DateTime toDt = DateTimeKst.Now;
+            DateTime fromDt = DateTimeKst.Now.AddDays(isWeek? -7 : -1);
 
             dbManager.GetMeasureLog(fromDt, toDt,  measureLogs =>  {
                 this.measureLogs.Clear();

@@ -161,7 +161,7 @@ public class PageSmsRegister : MonoBehaviour
             is_enabled = true,                               
             //board_id = selectedSensor.board_id,              
             sensor_id = selectedSensor.sensor_id,            
-            checked_time = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd HH:mm:ss")  
+            checked_time = DateTimeKst.Now.ToString("yyyy-MM-dd HH:mm:ss")  
         };
         /*// 생성된 모델 확인 로그 추가
         Debug.Log($"=== 생성된 SMS 모델 ===");

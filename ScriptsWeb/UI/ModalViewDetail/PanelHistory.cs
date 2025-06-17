@@ -53,7 +53,7 @@ namespace Assets.ScriptsWeb.UI
                 dtTo = value;
                 txbDatetime.to.SetTextWithoutNotify(dtTo.ToString("yyyy-MM-dd"));
 
-                if (dtTo.Date != DateTime.UtcNow.AddHours(9).Date)
+                if (dtTo.Date != DateTimeKst.Now.Date)
                 {
                     dtTo = dtTo.AddHours(23 - dtTo.Hour);
                     dtTo = dtTo.AddMinutes(59 - dtTo.Minute);
@@ -61,7 +61,7 @@ namespace Assets.ScriptsWeb.UI
                 }
                 else
                 {
-                    dtTo = DateTime.UtcNow.AddHours(9);
+                    dtTo = DateTimeKst.Now;
                 }
             }
         }
@@ -99,11 +99,11 @@ namespace Assets.ScriptsWeb.UI
         {
             txbDatetime.from.onValueChanged.AddListener(value => OnChangeDateTime(true, value));
             txbDatetime.from.onEndEdit.AddListener(value => OnEndEditDateTime(true, value));
-            txbDatetime.from.text = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
+            txbDatetime.from.text = DateTimeKst.Now.ToString("yyyy-MM-dd");
 
             txbDatetime.to.onValueChanged.AddListener(value => OnChangeDateTime(false, value));
             txbDatetime.to.onEndEdit.AddListener(value => OnEndEditDateTime(false, value));
-            txbDatetime.to.text = DateTime.UtcNow.AddHours(9).ToString("yyyy-MM-dd");
+            txbDatetime.to.text = DateTimeKst.Now.ToString("yyyy-MM-dd");
 
             foreach(var item in btnTimespanList)
                 item.onClick.AddListener(() => OnClickTimespan(btnTimespanList.IndexOf(item)));
@@ -179,8 +179,8 @@ namespace Assets.ScriptsWeb.UI
                 DateTime dt = DateTime.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
                 //미래 기록 조회 불가
-                if (dt.Date > DateTime.UtcNow.AddHours(9).Date)
-                    dt = DateTime.UtcNow.AddHours(9);
+                if (dt.Date > DateTimeKst.Now.Date)
+                    dt = DateTimeKst.Now;
 
                 //From < To가 참이게끔 교정
                 if (!isFrom && dt < dtFrom)
@@ -201,8 +201,8 @@ namespace Assets.ScriptsWeb.UI
                 DateTime dt = DateTime.ParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 
                 //미래 기록 조회 불가
-                if (dt.Date > DateTime.UtcNow.AddHours(9).Date)
-                    dt = DateTime.UtcNow.AddHours(9);
+                if (dt.Date > DateTimeKst.Now.Date)
+                    dt = DateTimeKst.Now;
 
                 //From < To가 참이게끔 교정
                 if (!isFrom && dt < dtFrom)
@@ -249,7 +249,7 @@ namespace Assets.ScriptsWeb.UI
                 default: throw new Exception("사전에 정의되지 않은 버튼 인덱스가 입력되었습니다." + idxOfButton);
             }
 
-            DateTime now = DateTime.UtcNow.AddHours(9);
+            DateTime now = DateTimeKst.Now;
 
             //txbDatetime.from.text = (now - rightMargin - timeSpan).ToString("yyyy-MM-dd");
             //txbDatetime.to.text = (now - rightMargin).ToString("yyyy-MM-dd");

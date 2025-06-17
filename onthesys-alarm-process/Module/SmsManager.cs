@@ -36,7 +36,7 @@ namespace onthesys_alarm_process.Process
         internal SmsManager(Application app, ISmsHandle smsHandle) : base(app)
         {
             this.smsHandle = smsHandle;
-            interval = 15000;
+            interval = 30*60*1000;
         }
         protected override Task Process()
         {
@@ -108,7 +108,7 @@ namespace onthesys_alarm_process.Process
 
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
 
-            string groupMessage = $"[{sensor.sensor_name}] Status rise: {from} → {to} at {alarm.occured_time:HH:mm:ss}, over {threshold} {sensor.unit}";
+            string groupMessage = $"[{sensor.sensor_name}] Status rise: {from} => {to} at {alarm.occured_time:HH:mm:ss}, over {threshold} {sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();
@@ -136,7 +136,7 @@ namespace onthesys_alarm_process.Process
             List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
 
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
-            string groupMessage = $"[{sensor.sensor_name}] Status drop: {from} → {to} at {alarm.occured_time:HH:mm:ss}, below {threshold} {sensor.unit}";
+            string groupMessage = $"[{sensor.sensor_name}] Status drop: {from} => {to} at {alarm.occured_time:HH:mm:ss}, below {threshold} {sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();

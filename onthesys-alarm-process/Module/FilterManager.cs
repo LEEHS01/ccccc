@@ -14,15 +14,15 @@ namespace onthesys_alarm_process.Process
 
     public class FilterManager : Manager
     {
-        const int winSize = 11;
-        public static int filterLatestIndex = (winSize - 1) / 2;
+        //const int winSize = 11;
+        //public static int filterLatestIndex = (winSize - 1) / 2;
         public event Action<List<MeasureModel>> OnDataProcessed;    //데이터 처리 종료
 
         //private FirFilter fir;
 
         public FilterManager(Application app) : base(app) 
         {
-            fir = new FirFilter(winSize, 20f, 120);
+            //fir = new FirFilter(winSize, 20f, 120);
         }
 
         protected override void OnInitiate()

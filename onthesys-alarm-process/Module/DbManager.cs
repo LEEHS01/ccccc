@@ -28,13 +28,13 @@ namespace onthesys_alarm_process.Process
         
         public event Action<string> OnDataUploaded;     //데이터 업로드
 
-        public const string url = "http://192.168.0.27:8080";
+        public const string url = "http://192.168.10.236:8080";
         #endregion
 
 
         public DbManager(Application app) : base(app)
         {
-            interval = 10000;
+            interval = 50*60*1000;
         }
         protected override void OnInitiate()
         {
@@ -100,64 +100,84 @@ namespace onthesys_alarm_process.Process
             });
         }
 
-
         /// <summary>
         /// 센서 제원, 알람 로그, SMS 서비스 초기화
         /// </summary>
-        void RequestRefreshDatas() 
+        void RequestRefreshDatas()
         {
             string query;
 
-            //센서 제원 초기화
-            query = $@"Select * from sensor;";
-            ResponseAPIString("SELECT", query).ContinueWith(t =>
+            try
             {
-                if (t.IsFaulted)
+                //센서 제원 초기화
+                query = $@"Select * from sensor;";
+                ResponseAPIString("SELECT", query).ContinueWith(t =>
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
-                }
-                else
-                {
-                    //Console.WriteLine("Result: " + t.Result);
-                    var wrapper = JsonConvert.DeserializeObject<SensorModelList>(t.Result);
-                    var result = wrapper.items;
-                    OnSensorsDownloaded?.Invoke(result);
-                }
-            });
+                    if (t.IsFaulted)
+                    {
+                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    }
+                    else
+                    {
+                        //Console.WriteLine("Result: " + t.Result);
+                        var wrapper = JsonConvert.DeserializeObject<SensorModelList>(t.Result);
+                        var result = wrapper.items;
+                        OnSensorsDownloaded?.Invoke(result);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex);
+            }
 
-            //활성화된 알람들로 초기화
-            query = $@"select * from alarm_log where solved_time IS NULL;";
-            ResponseAPIString("SELECT", query).ContinueWith(t =>
+            try
             {
-                if (t.IsFaulted)
+                //활성화된 알람들로 초기화
+                query = $@"select * from alarm_log where solved_time IS NULL;";
+                ResponseAPIString("SELECT", query).ContinueWith(t =>
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
-                }
-                else
-                {
-                    //Console.WriteLine("Result: " + t.Result);
-                    var wrapper = JsonConvert.DeserializeObject<AlarmLogModelList>(t.Result);
-                    var result = wrapper.items;
-                    OnAlarmDownloaded?.Invoke(result);
-                }
-            });
+                    if (t.IsFaulted)
+                    {
+                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    }
+                    else
+                    {
+                        //Console.WriteLine("Result: " + t.Result);
+                        var wrapper = JsonConvert.DeserializeObject<AlarmLogModelList>(t.Result);
+                        var result = wrapper.items;
+                        OnAlarmDownloaded?.Invoke(result);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex);
+            }
 
-            //sms 서비스 초기화 
-            query = $@"select * from sms_service where is_enabled = 1;";
-            ResponseAPIString("SELECT", query).ContinueWith(t =>
+            try
             {
-                if (t.IsFaulted)
+                //sms 서비스 초기화 
+                query = $@"select * from sms_service where is_enabled = 1;";
+                ResponseAPIString("SELECT", query).ContinueWith(t =>
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
-                }
-                else
-                {
-                    //Console.WriteLine("Result: " + t.Result);
-                    var wrapper = JsonConvert.DeserializeObject<SmsServiceModelList>(t.Result);
-                    var result = wrapper.items;
-                    OnSmsServicesDownloaded?.Invoke(result);
-                }
-            });
+                    if (t.IsFaulted)
+                    {
+                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    }
+                    else
+                    {
+                        //Console.WriteLine("Result: " + t.Result);
+                        var wrapper = JsonConvert.DeserializeObject<SmsServiceModelList>(t.Result);
+                        var result = wrapper.items;
+                        OnSmsServicesDownloaded?.Invoke(result);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex);
+            }
         }
         
         /// <summary>
@@ -234,16 +254,21 @@ namespace onthesys_alarm_process.Process
 
             List<MeasureModel> uppperMeasures = new List<MeasureModel>(), lowerMeasures = new List<MeasureModel>();
 
-            Task upperTask = ResponseAPIString("SELECT", upperQuery).ContinueWith(parseAndLerpingMeasures).ContinueWith(items => uppperMeasures.AddRange(items.Result));
-            Task lowerTask = ResponseAPIString("SELECT", lowerQuery).ContinueWith(parseAndLerpingMeasures).ContinueWith(items => lowerMeasures.AddRange(items.Result));
+            try
+            {
+                Task upperTask = ResponseAPIString("SELECT", upperQuery).ContinueWith(parseAndLerpingMeasures).ContinueWith(items => uppperMeasures.AddRange(items.Result));
+                Task lowerTask = ResponseAPIString("SELECT", lowerQuery).ContinueWith(parseAndLerpingMeasures).ContinueWith(items => lowerMeasures.AddRange(items.Result));
 
+                upperTask.Wait();
+                lowerTask.Wait();
 
-            upperTask.Wait();
-            lowerTask.Wait();
-
-
-            //데이터 로그 다운로드
-            OnDataDownloaded?.Invoke(uppperMeasures, lowerMeasures);
+                //데이터 로그 다운로드
+                OnDataDownloaded?.Invoke(uppperMeasures, lowerMeasures);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex);
+            }
         }
 
         /// <summary>

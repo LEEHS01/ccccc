@@ -109,10 +109,10 @@ namespace Onthesys.WebBuild
             var recentModel = modelProvider.GetMeasureRecentBySensor(boardId, sensorId);
             if (recentModel != null)
             {
-                return recentModel.MeasuredTime.AddHours(9);
+                return recentModel.MeasuredTime;
             }
 
-            return DateTime.Now;
+            return DateTimeKst.Now;
         }
 
         void UpdateUi()
@@ -136,14 +136,14 @@ namespace Onthesys.WebBuild
 */
             //0610 수정       
 
-            TimeSpan delayment = DateTime.UtcNow.AddHours(9) - GetMaintenanceStartTime();
+            TimeSpan delayment = DateTimeKst.Now - GetMaintenanceStartTime();
             //Debug.Log($"[IndicatorMeasure] Delayment for sensor {sensorData.sensor_name} (Board {boardId}, Sensor {sensorId}): {delayment.TotalMinutes} minutes");
-            if (sensorData.isFixing || delayment > new TimeSpan(0,5,0)) //테스트로 1분 지연을 임계치로
+            if (sensorData.isFixing || delayment > new TimeSpan(1, 0, 0))//테스트로 1분 지연을 임계치로
             {
                 pnlCoverDelayedDate.gameObject.SetActive(true);
                 DateTime maintenanceTime = GetMaintenanceStartTime();
 
-                lblCoverDate.text = (DateTime.UtcNow.AddHours(9).Date != maintenanceTime.Date) ? maintenanceTime.ToString("yy-MM-dd") : "";
+                lblCoverDate.text = (DateTimeKst.Now.Date != maintenanceTime.Date) ? maintenanceTime.ToString("yy-MM-dd") : "";
                 lblCoverTime.text = maintenanceTime.ToString("HH:mm:ss");
                 lblCoverName.text = $"{sensorData.sensor_name}({(sensorData.board_id == 1 ? "상류" : "하류")})";//0611 센서명 추가
 

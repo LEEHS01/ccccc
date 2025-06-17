@@ -243,6 +243,8 @@ namespace Onthesys.WebBuild
 
         void UpdateTrendLine(List<MeasureModel> diffs) 
         {
+            if (dots.Count == 0) return;
+
             RectTransform parentRect = transform.Find("Chart_Dots").GetComponent<RectTransform>();
             Vector2 parentSize = parentRect.rect.size;
             Vector2 anchorPos = dots.First().anchorMin;

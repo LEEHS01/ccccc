@@ -1,80 +1,64 @@
-﻿# if UNITY_EDITOR
-
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-public class RevertAllPrefabParameters : EditorWindow
+using UnityEditor.SceneManagement;
+
+public class PrefabOverrideReverter : EditorWindow
 {
-    [MenuItem("Tools/Revert All Prefab Parameters")]
-    public static void ShowWindow()
+    [MenuItem("Tools/Prefab/Revert All Overrides (Recursive - Legacy)")]
+    private static void RevertOverridesLegacy()
     {
-        GetWindow<RevertAllPrefabParameters>("Revert All Prefab Parameters");
-    }
-
-    private void OnGUI()
-    {
-        GUILayout.Label("Prefab Revert Tool", EditorStyles.boldLabel);
-
-        if (GUILayout.Button("Revert Selected GameObject (Including Children)"))
+        var selection = Selection.gameObjects;
+        if (selection.Length == 0)
         {
-            RevertSelectedPrefabWithChildren();
-        }
-
-        if (GUILayout.Button("Revert All Prefabs in Scene"))
-        {
-            RevertAllPrefabsInScene();
-        }
-    }
-
-    private static void RevertSelectedPrefabWithChildren()
-    {
-        GameObject selectedObject = Selection.activeGameObject;
-        if (selectedObject == null)
-        {
-            Debug.LogWarning("🚫 No GameObject selected!");
+            Debug.LogWarning("선택된 오브젝트가 없습니다.");
             return;
         }
 
-        // 재귀적으로 Prefab Revert
-        int revertCount = RevertPrefabRecursive(selectedObject);
-
-        Debug.Log($"✅ Total Reverted Prefabs: {revertCount}");
-    }
-
-    private static int RevertPrefabRecursive(GameObject obj)
-    {
         int count = 0;
 
-        // Prefab인지 확인
-        if (PrefabUtility.IsPartOfPrefabInstance(obj))
+        foreach (var root in selection)
         {
-            PrefabUtility.RevertPrefabInstance(obj, InteractionMode.UserAction);
-            Debug.Log($"🔄 Reverted: {obj.name}");
-            count++;
+            count += RevertRecursive(root);
         }
 
-        // 자식 오브젝트에 대해 재귀 호출
-        foreach (Transform child in obj.transform)
-        {
-            count += RevertPrefabRecursive(child.gameObject);
-        }
+        EditorSceneManager.MarkSceneDirty(UnityEngine.SceneManagement.SceneManager.GetActiveScene());
 
-        return count;
+        Debug.Log($"Reverted overrides on {count} GameObject(s).");
     }
 
-    private static void RevertAllPrefabsInScene()
+    private static int RevertRecursive(GameObject obj)
     {
-        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
-
         int revertCount = 0;
-        foreach (var obj in allObjects)
+
+        if (PrefabUtility.IsPartOfPrefabInstance(obj))
         {
-            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+            var overrides = PrefabUtility.GetObjectOverrides(obj);
+            foreach (var overr in overrides)
             {
-                PrefabUtility.RevertPrefabInstance(obj, InteractionMode.UserAction);
+                PrefabUtility.RevertObjectOverride(overr.instanceObject, InteractionMode.UserAction);
+                revertCount++;
+            }
+
+            var added = PrefabUtility.GetAddedGameObjects(obj);
+            foreach (var add in added)
+            {
+                PrefabUtility.RevertAddedGameObject(add.instanceGameObject, InteractionMode.UserAction);
+                revertCount++;
+            }
+
+            var removed = PrefabUtility.GetRemovedComponents(obj);
+            foreach (var removedComponent in removed)
+            {
+                PrefabUtility.RevertRemovedComponent(obj, removedComponent.assetComponent, InteractionMode.UserAction);
                 revertCount++;
             }
         }
-        Debug.Log($"✅ Total Reverted Prefabs in Scene: {revertCount}");
+
+        foreach (Transform child in obj.transform)
+        {
+            revertCount += RevertRecursive(child.gameObject);
+        }
+
+        return revertCount;
     }
 }
-#endif

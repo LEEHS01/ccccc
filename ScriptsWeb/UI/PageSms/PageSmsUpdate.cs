@@ -193,7 +193,7 @@ public class PageSmsUpdate : MonoBehaviour
 
 
         List<SmsServiceModel> ssms = modelProvider.GetSmsServices();
-        if (ssms.Find(ssm => ssm.phone == txbPhoneNumber.text.Replace("-", string.Empty) && ssm.sensor_id == (ddlSensorselect.value + 1)) != null)
+        if (ssms.Find(ssm =>ssm.service_id != data.service_id  && ssm.phone == txbPhoneNumber.text.Replace("-", string.Empty) && ssm.sensor_id == (ddlSensorselect.value + 1)) != null)
         {
             UiManager.Instance.Invoke(UiEventType.PopupError, ("서비스 등록 실패", "해당 센서에 대한 서비스가 이미 등록되어 있어 서비스 등록에 실패했습니다."));
             return;
@@ -218,7 +218,7 @@ public class PageSmsUpdate : MonoBehaviour
             phone = txbPhoneNumber.text.Replace("-", string.Empty),
             is_enabled = data.is_enabled,                    //0605 isEnabled → is_enabled
             sensor_id = selectedSensor.sensor_id,            //0605 수정
-            checked_time = data.checked_time
+            checked_time = DateTimeKst.Now.ToString("yyyy-MM-dd HH:mm:ss")  // 0605 수정
         }));
     }
     void OnClickCancel()

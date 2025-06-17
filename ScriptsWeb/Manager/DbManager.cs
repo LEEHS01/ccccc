@@ -23,9 +23,9 @@ namespace Onthesys.WebBuild
             }
             instance = this;
 
-            GetMeasureLogFunc(DateTime.Now, DateTime.Now, items => items.ForEach(item => 
-                Debug.Log($"[{item.board_id} - {item.sensor_id}][{item.measured_time.ToString()}] : {item.measured_value}")
-            ));
+            //GetMeasureLogFunc(DateTime.Now, DateTime.Now, items => items.ForEach(item => 
+            //    Debug.Log($"[{item.board_id} - {item.sensor_id}][{item.measured_time.ToString()}] : {item.measured_value}")
+            //));
 
         }
 
@@ -168,6 +168,11 @@ namespace Onthesys.WebBuild
                 //Debug.Log("GetSensorDataFunc : " + result);
                 var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
                 callback(wrapper.items);
+                //foreach (var item in wrapper.items)
+                //{
+                //    Debug.Log($"[{item.board_id} - {item.sensor_id}][{item.measured_time.ToString()}] : {item.measured_value}");
+                //}
+                //Debug.Log($"GetMeasureLogFunc : {wrapper.items.Count} items received from DB between {fromDt:yyyy-MM-dd HH:mm:ss} and {toDt:yyyy-MM-dd HH:mm:ss}.");
 
                 //WEBGL에서는 ... 무조건 단일 쓰레드...
                 //List<MeasureModel> parsed = null;
