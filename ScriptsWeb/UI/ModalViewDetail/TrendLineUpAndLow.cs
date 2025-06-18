@@ -39,8 +39,23 @@ namespace Onthesys.WebBuild
                 new Vector2(dot.parent.localPosition.x, dot.parent.localPosition.y)
                 ).ToList()
             );
-        float MaxValue => Mathf.Max(sensorLogs.upper.Select(log => log.measured_value).Max(), sensorLogs.lower.Select(log => log.measured_value).Max(), 0.1f);
-        
+        //float MaxValue => Mathf.Max(sensorLogs.upper.Select(log => log.measured_value).Max(), sensorLogs.lower.Select(log => log.measured_value).Max(), 0.1f);
+
+        float GetFixedMaxValue()
+        {
+            if (sensorData == null) return 300f;
+
+            return sensorData.sensor_id switch
+            {
+                1 => 300f,   // 센서1: 0~300 범위
+                2 => 300f,   // 센서2: 0~300 범위  
+                3 => 4000f,  // 센서3: 0~4000 범위
+                _ => 300f    // 기본값
+            };
+        }
+
+        float MaxValue => GetFixedMaxValue();
+
         //Components
         //TMP_Text lblName;
         (List<RectTransform> upper, List<RectTransform> lower) dots = (new(), new());
@@ -220,15 +235,40 @@ namespace Onthesys.WebBuild
         void UpdateAmountLabels()
         {
             if (sensorLogs.lower.Count < 1 || sensorLogs.upper.Count < 1) return;
-            
+
             foreach (var lbl in lblAmountList)
             {
-                float value = MaxValue / (lblAmountList.Count-1) * (lblAmountList.Count - 1 - lblAmountList.IndexOf(lbl));
+                int index = lblAmountList.IndexOf(lbl);
+
+                // 깔끔한 값으로 계산
+                float value = GetCleanLabelValue(MaxValue, index, lblAmountList.Count);
+
+                //float value = MaxValue / (lblAmountList.Count-1) * (lblAmountList.Count - 1 - lblAmountList.IndexOf(lbl));
                 DOTween.To(() => lbl.rectTransform.anchoredPosition.y,
                     value => lbl.text= value.ToString("F0"),
                     value, 0.4f);
             }
 
+        }
+
+        float GetCleanLabelValue(float maxValue, int index, int totalCount)
+        {
+            // 위에서부터 아래로 (index 0 = 최댓값, 마지막 index = 0)
+            float ratio = (float)(totalCount - 1 - index) / (totalCount - 1);
+            float rawValue = maxValue * ratio;
+
+            // 센서별 깔끔한 간격으로 반올림
+            return sensorData.sensor_id switch
+            {
+                1 or 2 => RoundToCleanValue(rawValue, 60f),
+                3 => RoundToCleanValue(rawValue, 500f), 
+                _ => RoundToCleanValue(rawValue, 50f)
+            };
+        }
+
+        float RoundToCleanValue(float value, float step)
+        {
+            return Mathf.Round(value / step) * step;
         }
 
         void UpdateTimeLabels() 

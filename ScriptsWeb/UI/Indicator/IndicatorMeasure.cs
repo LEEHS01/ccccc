@@ -141,7 +141,7 @@ namespace Onthesys.WebBuild
 
             TimeSpan delayment = DateTimeKst.Now - GetMaintenanceStartTime();
             //Debug.Log($"[IndicatorMeasure] Delayment for sensor {sensorData.sensor_name} (Board {boardId}, Sensor {sensorId}): {delayment.TotalMinutes} minutes");
-            if (sensorData.isFixing || delayment > new TimeSpan(1, 0, 0))//테스트로 1분 지연을 임계치로
+            if (sensorData.isFixing || delayment > new TimeSpan(1, 0, 0))//테스트로 1시간 지연을 임계치로
             {
                 pnlCoverDelayedDate.gameObject.SetActive(true);
                 DateTime maintenanceTime = GetMaintenanceStartTime();

@@ -10,7 +10,7 @@ namespace Onthesys.WebBuild
         public int sensor_id;
         public float measured_value;
         public string measured_time;
-        public DateTime MeasuredTime => DateTimeKst.ParseRaw(measured_time);
+        public DateTime MeasuredTime => DateTimeKst.Parse(measured_time);
     }
 
 

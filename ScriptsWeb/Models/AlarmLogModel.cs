@@ -126,12 +126,12 @@ namespace Onthesys.WebBuild
         public string alarm_level;
         public string occured_time;
         public string solved_time;
-        public DateTime OccuredTime => DateTimeKst.ParseRaw(occured_time);
+        public DateTime OccuredTime => DateTimeKst.Parse(occured_time);
         public DateTime? SolvedTime()
         {
             try
             {
-                return DateTimeKst.ParseRaw(occured_time);
+                return DateTimeKst.Parse(occured_time);
             }
             catch
             {

@@ -40,6 +40,7 @@ namespace onthesys_alarm_process.Process
             }
             catch (Exception ex)
             {
+                Logger.WriteLineAndLog($"{ex} {ex.Source} {ex.Message} {ex.StackTrace} ");
                 // 로깅 또는 예외처리
             }
         }

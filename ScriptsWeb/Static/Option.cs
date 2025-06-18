@@ -12,15 +12,19 @@ namespace Onthesys.WebBuild
     {
         public static int TREND_TIME_INTERVAL = 1;
         public static int TREND_TIME_RANGE = 1440;
-
-        public static string URL = "http://192.168.10.235:8080";
+        public static string URL =
+#if UNITY_EDITOR
+    "http://192.168.10.236:8080";
+#else
+    "http://115.91.85.42:8080";
+#endif
     }
 
     public static class  DateTimeKst
     {
         public static DateTime Now => DateTime.UtcNow.AddHours(9);
 
-        public static DateTime Parse(string dateTime)
+        public static DateTime ParseLegacy(string dateTime)
         {
             DateTime dt = DateTime.Parse(dateTime, CultureInfo.InvariantCulture);
             dt = DateTime.SpecifyKind(dt, DateTimeKind.Unspecified); // 명시적으로 Unspecified
@@ -28,7 +32,7 @@ namespace Onthesys.WebBuild
             return dt;
         }
 
-        public static DateTime ParseRaw(string dateTime)
+        public static DateTime Parse(string dateTime)
         {
             // 문자열을 "숫자 그대로" DateTime으로 해석, 타임존 무시
             DateTime dt = DateTime.ParseExact(

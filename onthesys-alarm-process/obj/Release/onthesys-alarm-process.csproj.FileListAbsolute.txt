@@ -1,0 +1,10 @@
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Release\onthesys-alarm-process.exe.config
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Release\onthesys-alarm-process.exe
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Release\onthesys-alarm-process.pdb
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Release\Newtonsoft.Json.dll
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\bin\Release\Newtonsoft.Json.xml
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Release\onthesys-alarm-process.csproj.AssemblyReference.cache
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Release\onthesys-alarm-process.csproj.CoreCompileInputs.cache
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Release\onthesys.954E4BE4.Up2Date
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Release\onthesys-alarm-process.exe
+C:\Users\onthesys\Downloads\NewFolder\onthesys-client-web\onthesys-alarm-process\obj\Release\onthesys-alarm-process.pdb

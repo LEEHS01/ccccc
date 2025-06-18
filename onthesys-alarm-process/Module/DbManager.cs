@@ -21,14 +21,14 @@ namespace onthesys_alarm_process.Process
     public class DbManager : Manager
     {
         #region 이벤트 리스트
-        public event Action<List<MeasureModel>, List<MeasureModel>> OnDataDownloaded;   //데이터 다운로드
+        //public event Action<List<MeasureModel>> OnDataDownloaded;   //데이터 다운로드
         public event Action<List<AlarmLogModel>> OnAlarmDownloaded;   //알람 다운로드
         public event Action<List<SensorModel>> OnSensorsDownloaded;   //센서 제원 다운로드
         public event Action<List<SmsServiceModel>> OnSmsServicesDownloaded;   //SMS 서비스 다운로드
         
-        public event Action<string> OnDataUploaded;     //데이터 업로드
+        //public event Action<string> OnDataUploaded;     //데이터 업로드
 
-        public const string url = "http://192.168.10.236:8080";
+        public const string url = "http://192.168.1.20:8080";
         #endregion
 
 
@@ -56,9 +56,10 @@ namespace onthesys_alarm_process.Process
         {
             try
             {
-                RequestMeasureLogBySensor(1);
-                RequestMeasureLogBySensor(2);
-                RequestMeasureLogBySensor(3);
+                //RequestMeasureLog();
+                //RequestMeasureLogBySensor(1);
+                //RequestMeasureLogBySensor(2);
+                //RequestMeasureLogBySensor(3);
 
                 RequestRefreshDatas();
 
@@ -66,7 +67,7 @@ namespace onthesys_alarm_process.Process
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception : " +  ex);
+                Logger.WriteLineAndLog("Exception : " +  ex);
             }
             return Task.CompletedTask;
         }
@@ -91,11 +92,11 @@ namespace onthesys_alarm_process.Process
             {
                 if (t.IsFaulted)
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                 }
                 else
                 {
-                    OnDataUploaded?.Invoke($"measure_recent : {datas.Count} 개");
+                    Logger.WriteLineAndLog($"measure_recent : {datas.Count} 개");
                 }
             });
         }
@@ -115,11 +116,11 @@ namespace onthesys_alarm_process.Process
                 {
                     if (t.IsFaulted)
                     {
-                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                        Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                     }
                     else
                     {
-                        //Console.WriteLine("Result: " + t.Result);
+                        //Logger.WriteLineAndLog("Result: " + t.Result);
                         var wrapper = JsonConvert.DeserializeObject<SensorModelList>(t.Result);
                         var result = wrapper.items;
                         OnSensorsDownloaded?.Invoke(result);
@@ -128,7 +129,7 @@ namespace onthesys_alarm_process.Process
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception : " + ex);
+                Logger.WriteLineAndLog("Exception : " + ex);
             }
 
             try
@@ -139,11 +140,11 @@ namespace onthesys_alarm_process.Process
                 {
                     if (t.IsFaulted)
                     {
-                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                        Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                     }
                     else
                     {
-                        //Console.WriteLine("Result: " + t.Result);
+                        //Logger.WriteLineAndLog("Result: " + t.Result);
                         var wrapper = JsonConvert.DeserializeObject<AlarmLogModelList>(t.Result);
                         var result = wrapper.items;
                         OnAlarmDownloaded?.Invoke(result);
@@ -152,7 +153,7 @@ namespace onthesys_alarm_process.Process
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception : " + ex);
+                Logger.WriteLineAndLog("Exception : " + ex);
             }
 
             try
@@ -163,11 +164,11 @@ namespace onthesys_alarm_process.Process
                 {
                     if (t.IsFaulted)
                     {
-                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                        Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                     }
                     else
                     {
-                        //Console.WriteLine("Result: " + t.Result);
+                        //Logger.WriteLineAndLog("Result: " + t.Result);
                         var wrapper = JsonConvert.DeserializeObject<SmsServiceModelList>(t.Result);
                         var result = wrapper.items;
                         OnSmsServicesDownloaded?.Invoke(result);
@@ -176,16 +177,37 @@ namespace onthesys_alarm_process.Process
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception : " + ex);
+                Logger.WriteLineAndLog("Exception : " + ex);
             }
         }
-        
+
+
+        void RequestMeasureLog() 
+        {
+            string query = "select * from measure_recent where 1=1;"; // 최근 계측 로그 조회 쿼리   
+
+            ResponseAPIString("SELECT", query).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
+                }
+                else
+                {
+                    //Logger.WriteLineAndLog("Result: " + t.Result);
+                    var wrapper = JsonConvert.DeserializeObject<MeasureModelList>(t.Result);
+                    var result = wrapper.items;
+                    //OnDataDownloaded?.Invoke(result);
+                }
+            });
+        }
+
         /// <summary>
         /// 센서별 측정 로그 요청
         /// </summary>
         /// <param name="boardId"></param>
         /// <param name="sensorId"></param>
-        void RequestMeasureLogBySensor(int sensorId)
+        void RequestMeasureLogBySensorLegacy(int sensorId)
         {
             DateTime startTime = DateTime.Now.AddSeconds(-30);
             string upperQuery = $@"EXEC WEB_DP.dbo.GET_MEASURE_TIME_RANGE_SENSOR
@@ -211,11 +233,11 @@ namespace onthesys_alarm_process.Process
             {
                 if (t.IsFaulted)
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                 }
                 else
                 {
-                    //Console.WriteLine("Result: " + t.Result);
+                    //Logger.WriteLineAndLog("Result: " + t.Result);
                     var wrapper = JsonConvert.DeserializeObject<MeasureModelList>(t.Result);
                     var result = wrapper.items;
 
@@ -263,11 +285,11 @@ namespace onthesys_alarm_process.Process
                 lowerTask.Wait();
 
                 //데이터 로그 다운로드
-                OnDataDownloaded?.Invoke(uppperMeasures, lowerMeasures);
+                //OnDataDownloaded?.Invoke(uppperMeasures, lowerMeasures);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Exception : " + ex);
+                Logger.WriteLineAndLog("Exception : " + ex);
             }
         }
 
@@ -286,11 +308,11 @@ namespace onthesys_alarm_process.Process
                 {
                     if (t.IsFaulted)
                     {
-                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                        Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                     }
                     else
                     {
-                        OnDataUploaded?.Invoke($"Solve Alarm : [{alarmLog.alarm_id}] : {alarmLog.GetAlarmLevel().ToString()}");
+                        Logger.WriteLineAndLog($"Solve Alarm : [{alarmLog.alarm_id}] : {alarmLog.GetAlarmLevel().ToString()}");
                     }
                 });
             }
@@ -314,11 +336,11 @@ namespace onthesys_alarm_process.Process
                 {
                     if (t.IsFaulted)
                     {
-                        Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                        Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                     }
                     else
                     {
-                        OnDataUploaded?.Invoke($"Occured Alarm : [{alarmLog.sensor_id}] : {alarmLog.GetAlarmLevel().ToString()}");
+                        Logger.WriteLineAndLog($"Occured Alarm : [{alarmLog.sensor_id}] : {alarmLog.GetAlarmLevel().ToString()}");
                     }
                 });
             }
@@ -334,11 +356,11 @@ namespace onthesys_alarm_process.Process
             {
                 if (t.IsFaulted)
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                 }
                 else
                 {
-                    OnDataUploaded?.Invoke($"made measureLog as recent");
+                    Logger.WriteLineAndLog($"made measureLog as recent");
                 }
             });
             
@@ -353,11 +375,11 @@ namespace onthesys_alarm_process.Process
             {
                 if (t.IsFaulted)
                 {
-                    Console.WriteLine("Error: " + t.Exception.InnerException.Message);
+                    Logger.WriteLineAndLog("Error: " + t.Exception.InnerException.Message);
                 }
                 else
                 {
-                    OnDataUploaded?.Invoke($"SET SMS CHECKED TIME : {services.Count}");
+                    Logger.WriteLineAndLog($"SET SMS CHECKED TIME : {services.Count}");
                 }
             });
         }
@@ -384,7 +406,7 @@ namespace onthesys_alarm_process.Process
                     response.EnsureSuccessStatusCode(); // 예외 throw if not 2xx
 
                     string responseBody = await response.Content.ReadAsStringAsync();
-                    //Console.WriteLine("[QUERY] : " + query + "\n[RECEIVED] : " + responseBody);
+                    //Logger.WriteLineAndLog("[QUERY] : " + query + "\n[RECEIVED] : " + responseBody);
                     return responseBody;
                 }
                 catch (HttpRequestException e)

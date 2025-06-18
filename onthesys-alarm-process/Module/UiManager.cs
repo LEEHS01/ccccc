@@ -30,21 +30,21 @@ namespace onthesys_alarm_process.Process
             //    lock (buffer)
             //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] ") + "SMS 발송");
             //};
-            app.dbManager.OnDataDownloaded += (upper, lower) =>
-            {
-                lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 로드됨") + $"[Data] {upper.Count} & {lower.Count}개");
-            };
-            app.dbManager.OnDataUploaded += msg =>
-            {
-                lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 업로드됨") + " - " + msg);
-            };
-            app.filterManager.OnDataProcessed += datas =>
-            {
-                lock (buffer)
-                    buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 처리 완료"));
-            };
+            //app.dbManager.OnDataDownloaded += (upper) =>
+            //{
+            //    lock (buffer)
+            //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 로드됨") + $"[Data] {upper.Count}개");
+            //};
+            //app.dbManager.OnDataUploaded += msg =>
+            //{
+            //    lock (buffer)
+            //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 업로드됨") + " - " + msg);
+            //};
+            //app.filterManager.OnDataProcessed += datas =>
+            //{
+            //    lock (buffer)
+            //        buffer.Enqueue(DateTime.Now.ToString("[yyMMdd_HHmmss] 데이터 처리 완료"));
+            //};
 
             base.OnInitiate();
         }
@@ -55,7 +55,7 @@ namespace onthesys_alarm_process.Process
         {
             lock (buffer)
                 while (buffer.Count > 0)
-                    Console.WriteLine(buffer.Dequeue());
+                    Logger.WriteLineAndLog(buffer.Dequeue());
 
             return Task.CompletedTask;
         }

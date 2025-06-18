@@ -11,21 +11,22 @@ namespace onthesys_alarm_process.Process
     public class Application
     {
         public DbManager dbManager;
-        public FilterManager filterManager;
-        public UiManager uiManager;
+        //public FilterManager filterManager;
+        //public UiManager uiManager;
         public SmsManager smsManager;
 
         public event Action OnInitiating;       //초기화 시작
 
         public bool IsQuiting { get; set; } = false;
 
-        public Application() 
+        public Application()
         {
+            Logger.WriteLineAndLog("[Application is Started]");
             var sms = new SMSHandleTest();
 
             dbManager = new DbManager(this);
-            filterManager = new FilterManager(this);
-            uiManager = new UiManager(this);
+            //filterManager = new FilterManager(this);
+            //uiManager = new UiManager(this);
             smsManager = new SmsManager(this, sms);
 
             Thread.Sleep(100); // 1초 대기
@@ -37,11 +38,13 @@ namespace onthesys_alarm_process.Process
             while (!IsQuiting) Thread.Sleep(100);
 
             dbManager.Quit();
-            filterManager.Quit();
-            uiManager.Quit();
+            //filterManager.Quit();
+            //uiManager.Quit();
             smsManager.Quit();
 
-            Console.WriteLine("Application is quitted (Press Any Key to Close)");
+            Logger.WriteLineAndLog("[Application is quitted]");
+            Logger.Close();
+
             Console.ReadKey();
         }
 

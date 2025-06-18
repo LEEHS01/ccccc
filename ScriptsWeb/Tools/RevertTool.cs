@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿#if UNITY_EDITOR
+using UnityEditor;
 using UnityEngine;
 using UnityEditor.SceneManagement;
 
@@ -62,3 +63,4 @@ public class PrefabOverrideReverter : EditorWindow
         return revertCount;
     }
 }
+#endif

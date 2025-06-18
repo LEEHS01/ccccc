@@ -22,7 +22,7 @@ namespace Onthesys.WebBuild
 
         public int board_id;
 
-        public DateTime CheckedTime => DateTimeKst.ParseRaw(checked_time);
+        public DateTime CheckedTime => DateTimeKst.Parse(checked_time);
     }
 
     [System.Serializable]

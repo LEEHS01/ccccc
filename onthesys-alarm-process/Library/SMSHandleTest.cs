@@ -17,15 +17,18 @@ namespace onthesys_alarm_process.Library
             if(random.Next(10) == 1) return false; // 10% 확률로 실패
 
 
-            Console.WriteLine($"[SMSHandleTest] : {devPos}");
+            Logger.WriteLineAndLog($"[SMSHandleTest] : {devPos}");
+
+            DateTime now = DateTime.Now;
+            long totalSeconds = now.Ticks / 10_000_000;
 
             //테스트 데이터 생성용 코드니 무시
-            Func<int, int> seed = sensorId => (int)devPos * 1241 + sensorId * 21414512;
+            Func<int, int> seed = sensorId => (int)(2+devPos) * 1241 + sensorId * 21414512;
 
             Func< int, float,float> value = (sensorId, noiseSize) =>  (float)(
-                (Math.Sin(seed(sensorId) + DateTime.Now.Ticks/2000/1000) + 
-                Math.Cos((seed(sensorId) + DateTime.Now.Ticks / 2000/1000) * 1.41) + 
-                2 * Math.Sin((seed(sensorId) + DateTime.Now.Ticks / 2000 / 1000) / 1.41) + (4 + noiseSize * 0.5f)) / (8 + noiseSize*0.5)
+                (Math.Sin(seed(sensorId) + totalSeconds / 60f / 60f) + 
+                Math.Cos((seed(sensorId) + totalSeconds / 60f / 60f) * 1.41) + 
+                2 * Math.Sin((seed(sensorId) + totalSeconds / 60f / 60f) / 1.41) + (4 + noiseSize * 0.5f)) / (8 + noiseSize*0.5)
                 /*+ noiseSize*((float)random.NextDouble() - 0.5)*/);
 
             // 데이터 생성
@@ -47,17 +50,17 @@ namespace onthesys_alarm_process.Library
                 for (int i = toIdx; i < pvList.Count; i++)
                 {
                     pvList[i].Timeout = true; // Randomly set one item to timeout
-                    Console.WriteLine($"[SMSHandleTest] TIMEOUT : {pvList[i].PV}");
+                    Logger.WriteLineAndLog($"[SMSHandleTest] TIMEOUT : {pvList[i].PV}");
                 }
             }
-            Console.WriteLine($"[SMSHandleTest] : {pvList.Count} DATA");
+            Logger.WriteLineAndLog($"[SMSHandleTest] : {pvList.Count} DATA");
 
             return true;
         }
 
         public bool SendSMSToList(List<string> phoneNumList, string smsMessage)
         {
-            Console.WriteLine($"[SMSHandleTest] REQUEST : GROUP SEND  {phoneNumList} : {smsMessage}");
+            Logger.WriteLineAndLog($"[SMSHandleTest] REQUEST : GROUP SEND  {phoneNumList} : {smsMessage}");
 
             if (phoneNumList.Count == 0) return true;
 
@@ -71,21 +74,21 @@ namespace onthesys_alarm_process.Library
                     successCount++;
                 else
                 {
-                    Console.WriteLine($"[SMSHandleTest] FAIL : {phone}");
+                    Logger.WriteLineAndLog($"[SMSHandleTest] FAIL : {phone}");
                     allSuccess = false;
                 }
             }
 
-            Console.WriteLine($"[SMSHandleTest] GROUP RESULT : {successCount}/{phoneNumList.Count} success");
+            Logger.WriteLineAndLog($"[SMSHandleTest] GROUP RESULT : {successCount}/{phoneNumList.Count} success");
             return allSuccess;
         }
 
         public bool SendSMSToOne(string phoneNumString, string smsMessage)
         {
-            Console.WriteLine($"[SMSHandleTest] REQUEST : \n\t : Sending SMS to {phoneNumString} : {smsMessage}");
+            Logger.WriteLineAndLog($"[SMSHandleTest] REQUEST : \n\t : Sending SMS to {phoneNumString} : {smsMessage}");
 
             if (!Regex.IsMatch(phoneNumString, @"\d{11}$")) {
-                Console.WriteLine($"[SMSHandleTest] FAILURE : {-1}\n\t 입력 전화번호가 유효하지 않은 방식입니다.");
+                Logger.WriteLineAndLog($"[SMSHandleTest] FAILURE : {-1}\n\t 입력 전화번호가 유효하지 않은 방식입니다.");
                 return false; //
             }
 
@@ -94,11 +97,11 @@ namespace onthesys_alarm_process.Library
 
             if (sizeNow > sizeMax)
             {
-                Console.WriteLine($"[SMSHandleTest] FAILURE : {-2}\n\t 입력한 메세지의 길이가 전송 가능한 한도 [{sizeMax}] byte를 초과했습니다!");
+                Logger.WriteLineAndLog($"[SMSHandleTest] FAILURE : {-2}\n\t 입력한 메세지의 길이가 전송 가능한 한도 [{sizeMax}] byte를 초과했습니다!");
                 return false;
             }
 
-            Console.WriteLine($"[SMSHandleTest] SUCCEED : {1}\n\t 메세지 전송에 성공했습니다.");
+            Logger.WriteLineAndLog($"[SMSHandleTest] SUCCEED : {1}\n\t 메세지 전송에 성공했습니다.");
             return true; // Simulate success
         }
     }

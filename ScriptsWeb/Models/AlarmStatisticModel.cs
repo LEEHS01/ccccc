@@ -24,7 +24,7 @@ namespace Onthesys.WebBuild
         public string latest_alarm;
         public float duration_sec;
 
-        public DateTime lastestTime => DateTimeKst.ParseRaw(latest_alarm);
+        public DateTime lastestTime => DateTimeKst.Parse(latest_alarm);
     }
 
     [System.Serializable]

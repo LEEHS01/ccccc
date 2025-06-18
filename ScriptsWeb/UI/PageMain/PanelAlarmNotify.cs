@@ -40,8 +40,14 @@ public class PanelAlarmNotify : MonoBehaviour
         List<AlarmLogModel> newLogs = modelProvider.GetAlarmLogList();
         if (newLogs == null) throw new Exception("modelProvider.GetAlarmLogList()가 null을 반환하고 있습니다.");
 
-        this.alarmLogs.Clear();
-        this.alarmLogs.AddRange(newLogs);
+        alarmLogs.Clear();
+        alarmLogs.AddRange(newLogs);
+
+        alarmLogs = alarmLogs.Where(log => 
+            log.GetAlarmLevel() == StatusType.WARNING || 
+            alarmLogs.Find(llog => 
+                llog.sensor_id == log.sensor_id && 
+                llog.GetAlarmLevel() == StatusType.WARNING) == null).ToList();
 
         //로그데이터 > 문자열
         List<string> newAlarmTexts = TranslateLogsToTexts(this.alarmLogs);
