@@ -247,9 +247,12 @@ namespace Onthesys.WebBuild
 
                 //Debug.Log($"[TrendLineMeasure] UpdateTimeLabels - ratio: {ratio}, dt: {dt}, timeSpan: {timeSpan}");
                 if (timeSpan.TotalDays < 4f)
-                    item.text = dt.ToString("HH:mm");
-                //else if (timeSpan.TotalDays < 4f)
-                //    item.text = dt.ToString("MM-dd HH:mm");
+                {
+                    if (item == lblHourList.Last() || item == lblHourList.First())
+                        item.text = dt.ToString("dd\nHH:mm");
+                    else
+                        item.text = dt.ToString("\nHH:mm");
+                }
                 else
                     item.text = dt.ToString("MM.dd");
             });
