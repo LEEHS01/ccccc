@@ -102,6 +102,7 @@ namespace Onthesys.WebBuild
         #endregion
 
         #region [툴팁 이벤트 처리]
+        private int currentTooltipIndex = -1; // 현재 표시 중인 툴팁의 인덱스
         public void OnPointerMove(PointerEventData eventData)
         {
             Debug.Log($"[TrendLineTooltip] OnPointerMove called at {eventData.position}");
@@ -128,14 +129,27 @@ namespace Onthesys.WebBuild
 
             if (closestIndex >= 0 && isNearPoint)
             {
-                // 해당 인덱스의 상하류 데이터 모두 가져오기
-                var upperData = sensorLogs.upper[closestIndex];
-                var lowerData = sensorLogs.lower[closestIndex];
-
-                ShowDualTooltip(upperData, lowerData, eventData.position);
+                // 🎯 같은 인덱스면 Show() 호출 안 함
+                if (currentTooltipIndex != closestIndex)
+                {
+                    currentTooltipIndex = closestIndex;
+                    var upperData = sensorLogs.upper[closestIndex];
+                    var lowerData = sensorLogs.lower[closestIndex];
+                    ShowDualTooltip(upperData, lowerData, eventData.position);
+                }
+                else
+                {
+                    //같은 점이면 위치만 업데이트
+                    if (currentTooltip != null)
+                    {
+                        var tooltipDisplay = currentTooltip.GetComponent<DualTooltipDisplay>();
+                        tooltipDisplay?.SetPosition(eventData.position, uiCamera);
+                    }
+                }
             }
             else
             {
+                currentTooltipIndex = -1; // 🎯 리셋
                 HideTooltip();
             }
         }
@@ -157,7 +171,7 @@ namespace Onthesys.WebBuild
             bool isNearPoint = false;
 
             // 점 감지를 위한 허용 반경 (픽셀 단위)
-            float pointRadius = 15f; // 이 값을 조정해서 감도 변경 가능
+            float pointRadius = 25f; // 이 값을 조정해서 감도 변경 가능
 
             // 상류 점들 검사
             for (int i = 0; i < dots.upper.Count; i++)
@@ -239,23 +253,14 @@ namespace Onthesys.WebBuild
         {
             if (currentTooltip != null)
             {
-                Debug.Log("[TrendLineTooltip] Hiding tooltip");
                 var tooltipDisplay = currentTooltip.GetComponent<DualTooltipDisplay>();
                 if (tooltipDisplay != null)
                 {
-                    tooltipDisplay.Hide(() => {
-                        if (currentTooltip != null)
-                        {
-                            Destroy(currentTooltip);
-                            currentTooltip = null;
-                        }
-                    });
+                    //Destroy 대신 Hide만 호출
+                    tooltipDisplay.Hide(); // onComplete 콜백 제거
                 }
-                else
-                {
-                    Destroy(currentTooltip);
-                    currentTooltip = null;
-                }
+                //currentTooltip = null; 제거 (오브젝트 유지)
+                //Destroy 제거 (오브젝트 유지)
             }
         }
 

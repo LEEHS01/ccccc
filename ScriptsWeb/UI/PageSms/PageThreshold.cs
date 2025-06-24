@@ -57,6 +57,7 @@ public class PageThreshold : MonoBehaviour
         {
             Debug.Log("임계값 저장 성공: " + message);
             // 성공 알림 TODO
+            UiManager.Instance.Invoke(UiEventType.PopupError, ("임계값 수정 성공", "임계값이 성공적으로 저장되었습니다."));
             UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsManage));
         }
         else

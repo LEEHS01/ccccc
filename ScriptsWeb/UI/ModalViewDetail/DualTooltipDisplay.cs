@@ -16,7 +16,9 @@ public class DualTooltipDisplay : MonoBehaviour
 
     private RectTransform rectTransform;
     private Canvas parentCanvas;
-        
+
+    private Tween currentFadeTween; // 현재 실행 중인 트윈 저장
+
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -29,6 +31,13 @@ public class DualTooltipDisplay : MonoBehaviour
 
     public void Show(MeasureModel upperData, MeasureModel lowerData, Vector2 screenPosition, Camera uiCamera)
     {
+        //기존 애니메이션이 있으면 중지
+        if (currentFadeTween != null)
+        {
+            currentFadeTween.Kill();
+            currentFadeTween = null;
+        }
+
         // 데이터 표시
         if (upperValueText != null)
             upperValueText.text = $"상류: {upperData.measured_value:F1}";
@@ -45,24 +54,28 @@ public class DualTooltipDisplay : MonoBehaviour
         // 위치 업데이트 (항상 실행)
         SetPosition(screenPosition, uiCamera);
 
-        // 페이드 인 애니메이션 (처음 표시될 때만)
-        if (canvasGroup != null)
+        //애니메이션은 툴팁이 숨겨진 상태일 때만 실행
+        if (canvasGroup != null && canvasGroup.alpha < 0.1f)
         {
-            canvasGroup.alpha = 0f;
-            canvasGroup.DOFade(1f, 0.2f);
-        }
-        else if (canvasGroup != null)
-        {
-            // 이미 표시된 상태라면 알파값을 1로 유지
-            canvasGroup.alpha = 1f;
+            currentFadeTween = canvasGroup.DOFade(1f, 0.2f).OnComplete(() => {
+                currentFadeTween = null; // 완료되면 참조 해제
+            });
         }
     }
 
     public void Hide(System.Action onComplete = null)
     {
+        // 기존 애니메이션이 있으면 중지
+        if (currentFadeTween != null)
+        {
+            currentFadeTween.Kill();
+            currentFadeTween = null;
+        }
+
         if (canvasGroup != null)
         {
-            canvasGroup.DOFade(0f, 0.1f).OnComplete(() => {
+            currentFadeTween = canvasGroup.DOFade(0f, 0.1f).OnComplete(() => {
+                currentFadeTween = null; // 완료되면 참조 해제
                 onComplete?.Invoke();
             });
         }
@@ -72,7 +85,7 @@ public class DualTooltipDisplay : MonoBehaviour
         }
     }
 
-    private void SetPosition(Vector2 screenPosition, Camera uiCamera)
+    public void SetPosition(Vector2 screenPosition, Camera uiCamera)
     {
         if (parentCanvas == null)
             parentCanvas = GetComponentInParent<Canvas>();
@@ -86,10 +99,6 @@ public class DualTooltipDisplay : MonoBehaviour
                 uiCamera,
                 out localPoint
             );
-
-            // 화면 경계 체크 및 조정
-            Vector3[] corners = new Vector3[4];
-            rectTransform.GetWorldCorners(corners);
 
             // 기본 위치 설정
             rectTransform.localPosition = localPoint + new Vector2(10, 10);
