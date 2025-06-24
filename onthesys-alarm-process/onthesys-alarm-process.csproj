@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="Library\FirFilter.cs" />
     <Compile Include="Library\Logger.cs" />
+    <Compile Include="Library\SMSHandleBeta.cs" />
     <Compile Include="Library\SMSHandleTest.cs" />
     <Compile Include="Model\AlarmLogModel.cs" />
     <Compile Include="Model\MeasureModel.cs" />

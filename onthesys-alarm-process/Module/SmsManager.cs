@@ -112,7 +112,7 @@ namespace onthesys_alarm_process.Process
 
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
 
-            string groupMessage = $"[{sensor.sensor_name}] Status rise: {from} => {to} at {alarm.occured_time:HH:mm:ss}, over {threshold} {sensor.unit}";
+            string groupMessage = $"[GyeRyong WQ]\nSensor : {sensor.sensor_name} INCREASE\nStatus : {from} -> {to}\nTime : {alarm.OccuredTime:HH:mm:ss}\nThreshold : {threshold}{sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();
@@ -140,7 +140,7 @@ namespace onthesys_alarm_process.Process
             List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
 
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
-            string groupMessage = $"[{sensor.sensor_name}] Status drop: {from} => {to} at {alarm.solved_time:HH:mm:ss}, below {threshold} {sensor.unit}";
+            string groupMessage = $"[GyeRyong WQ]\nSensor : {sensor.sensor_name} DECREASE\nStatus : {from} -> {to}\nTime : {alarm.SolvedTime():HH:mm:ss}\nThreshold : {threshold}{sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();

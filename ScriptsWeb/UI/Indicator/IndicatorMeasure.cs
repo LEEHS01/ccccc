@@ -130,13 +130,6 @@ namespace Onthesys.WebBuild
                 lblUnit.text = sensorData.unit;
             }
 
-            /*// 테스트용: 특정 센서만 강제로 점검중 표시
-            bool testFixing = sensorData.isFixing;
-            if (boardId == 1 && sensorId == 1) // 센서1-1 테스트
-            {
-                testFixing = true; // 이 센서만 강제로 점검중
-            }*/
-
             //0610 수정       
 
             TimeSpan delayment = DateTimeKst.Now - GetMaintenanceStartTime();

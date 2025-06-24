@@ -102,7 +102,7 @@ namespace Onthesys.WebBuild
         {
             try
             {
-                return DateTime.Parse(occured_time);
+                return DateTime.Parse(solved_time);
             }
             catch
             {

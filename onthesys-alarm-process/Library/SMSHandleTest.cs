@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace onthesys_alarm_process.Library
 {
@@ -14,7 +13,7 @@ namespace onthesys_alarm_process.Library
         static Random random = new Random();
         public bool SendGetCurrentValue(DEV_WQ_POS devPos, ref List<WQ_Item> pvList)
         {
-            if(random.Next(10) == 1) return false; // 10% 확률로 실패
+            if (random.Next(10) == 1) return false; // 10% 확률로 실패
 
 
             Logger.WriteLineAndLog($"[SMSHandleTest] : {devPos}");
@@ -23,18 +22,18 @@ namespace onthesys_alarm_process.Library
             long totalSeconds = now.Ticks / 10_000_000;
 
             //테스트 데이터 생성용 코드니 무시
-            Func<int, int> seed = sensorId => (int)(2+devPos) * 1241 + sensorId * 21414512;
+            Func<int, int> seed = sensorId => (int)(2 + devPos) * 12411 + sensorId * 98765;
 
-            Func< int, float,float> value = (sensorId, noiseSize) =>  (float)(
-                (Math.Sin(seed(sensorId) + totalSeconds / 60f / 60f) + 
-                Math.Cos((seed(sensorId) + totalSeconds / 60f / 60f) * 1.41) + 
-                2 * Math.Sin((seed(sensorId) + totalSeconds / 60f / 60f) / 1.41) + (4 + noiseSize * 0.5f)) / (8 + noiseSize*0.5)
+            Func<int, float, float> value = (sensorId, noiseSize) => (float)(
+                (Math.Sin(seed(sensorId) + totalSeconds / 60f / 60f) +
+                Math.Cos((seed(sensorId) + totalSeconds / 60f / 60f) * 1.41) +
+                2 * Math.Sin((seed(sensorId) + totalSeconds / 60f / 60f) / 1.41) + (4 + noiseSize * 0.5f)) / (8 + noiseSize * 0.5)
                 /*+ noiseSize*((float)random.NextDouble() - 0.5)*/);
 
             // 데이터 생성
             pvList = new List<WQ_Item> {
-                new WQ_Item { Timeout = false, PV = value(1, 0.1f) * 100 },
-                new WQ_Item { Timeout = false, PV = value(2, 0.1f) * 140  },
+                new WQ_Item { Timeout = false, PV = value(1, 0.0f) * 200 },
+                new WQ_Item { Timeout = false, PV = value(2, 0.0f) * 280  },
                 new WQ_Item { Timeout = false, PV = value(3, 0.02f) * 1000  },
                 new WQ_Item { Timeout = false, PV = value(4, 0.01f) * 20  },
                 new WQ_Item { Timeout = false, PV = value(5, 0.01f) * 1 + 6  },
@@ -44,7 +43,7 @@ namespace onthesys_alarm_process.Library
             };
 
 
-            if (random.Next(10) == 1) 
+            if (random.Next(10) == 1)
             {
                 int toIdx = random.Next(7);
                 for (int i = toIdx; i < pvList.Count; i++)
@@ -87,7 +86,8 @@ namespace onthesys_alarm_process.Library
         {
             Logger.WriteLineAndLog($"[SMSHandleTest] REQUEST : \n\t : Sending SMS to {phoneNumString} : {smsMessage}");
 
-            if (!Regex.IsMatch(phoneNumString, @"\d{11}$")) {
+            if (!Regex.IsMatch(phoneNumString, @"\d{11}$"))
+            {
                 Logger.WriteLineAndLog($"[SMSHandleTest] FAILURE : {-1}\n\t 입력 전화번호가 유효하지 않은 방식입니다.");
                 return false; //
             }

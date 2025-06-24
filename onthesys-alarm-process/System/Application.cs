@@ -1,4 +1,5 @@
-﻿using onthesys_alarm_process.Library;
+﻿using DMXOS;
+using onthesys_alarm_process.Library;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +23,8 @@ namespace onthesys_alarm_process.Process
         public Application()
         {
             Logger.WriteLineAndLog("[Application is Started]");
-            var sms = new SMSHandleTest();
-
+            //var sms = new SMSHandleTest();
+            var sms = new SMSHandleBeta();
             dbManager = new DbManager(this);
             //filterManager = new FilterManager(this);
             //uiManager = new UiManager(this);
