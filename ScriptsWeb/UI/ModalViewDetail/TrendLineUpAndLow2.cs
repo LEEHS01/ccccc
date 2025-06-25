@@ -48,7 +48,7 @@ namespace Onthesys.WebBuild
         static Dictionary<StatusType, Color> statusColorDic = new();
 
         #region [초기화]
-        
+
         protected override void Awake()
         {
             base.Awake();
@@ -68,23 +68,16 @@ namespace Onthesys.WebBuild
             chartRect = GetComponent<RectTransform>();
             Canvas parentCanvas = GetComponentInParent<Canvas>();
             uiCamera = parentCanvas?.worldCamera ?? Camera.main;
-
-            Debug.Log($"[TrendLineTooltip] Awake - raycastTarget: {raycastTarget}, Canvas: {parentCanvas?.name}");
         }
 
         protected override void Start()
         {
             if (!Application.isPlaying) return;
 
-            // 기존 툴팁 정리
-            CleanupTooltip();
-
             UiManager.Instance.Register(UiEventType.ChangeTrendLineHistory, OnChangeTrendLine);
             UiManager.Instance.Register(UiEventType.RequestSearchHistory, OnRequestSearch);
 
             base.Start();
-
-            Debug.Log($"[TrendLineTooltip] Started - tooltipPrefab: {tooltipPrefab?.name}");
         }
 
         float GetFixedMaxValue()
@@ -102,61 +95,33 @@ namespace Onthesys.WebBuild
         #endregion
 
         #region [툴팁 이벤트 처리]
-        private int currentTooltipIndex = -1; // 현재 표시 중인 툴팁의 인덱스
         public void OnPointerMove(PointerEventData eventData)
         {
-            Debug.Log($"[TrendLineTooltip] OnPointerMove called at {eventData.position}");
-
             if (sensorLogs.upper.Count == 0 || sensorLogs.lower.Count == 0)
-            {
-                Debug.Log("[TrendLineTooltip] No sensor data available");
                 return;
-            }
 
             // 마우스 위치를 로컬 좌표로 변환
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 chartRect, eventData.position, uiCamera, out Vector2 localMousePos))
-            {
-                Debug.Log("[TrendLineTooltip] Failed to convert screen point to local point");
                 return;
-            }
-
-           Debug.Log($"[TrendLineTooltip] Local mouse position: {localMousePos}");
 
             // 실제 점(노드) 근처에서만 툴팁 표시
             var (closestIndex, isNearPoint) = FindClosestPointIndex(localMousePos);
-            Debug.Log($"[TrendLineTooltip] Closest index: {closestIndex}, Near point: {isNearPoint}");
 
             if (closestIndex >= 0 && isNearPoint)
             {
-                // 🎯 같은 인덱스면 Show() 호출 안 함
-                if (currentTooltipIndex != closestIndex)
-                {
-                    currentTooltipIndex = closestIndex;
-                    var upperData = sensorLogs.upper[closestIndex];
-                    var lowerData = sensorLogs.lower[closestIndex];
-                    ShowDualTooltip(upperData, lowerData, eventData.position);
-                }
-                else
-                {
-                    //같은 점이면 위치만 업데이트
-                    if (currentTooltip != null)
-                    {
-                        var tooltipDisplay = currentTooltip.GetComponent<DualTooltipDisplay>();
-                        tooltipDisplay?.SetPosition(eventData.position, uiCamera);
-                    }
-                }
+                var upperData = sensorLogs.upper[closestIndex];
+                var lowerData = sensorLogs.lower[closestIndex];
+                ShowDualTooltip(upperData, lowerData, eventData.position);
             }
             else
             {
-                currentTooltipIndex = -1; // 🎯 리셋
                 HideTooltip();
             }
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            Debug.Log("[TrendLineTooltip] OnPointerExit called");
             HideTooltip();
         }
 
@@ -171,7 +136,7 @@ namespace Onthesys.WebBuild
             bool isNearPoint = false;
 
             // 점 감지를 위한 허용 반경 (픽셀 단위)
-            float pointRadius = 25f; // 이 값을 조정해서 감도 변경 가능
+            float pointRadius = 30f;
 
             // 상류 점들 검사
             for (int i = 0; i < dots.upper.Count; i++)
@@ -182,7 +147,6 @@ namespace Onthesys.WebBuild
                 );
 
                 float distance = Vector2.Distance(mousePos, dotPos);
-                Debug.Log($"[TrendLineTooltip] Upper dot {i}: pos={dotPos}, distance={distance}");
 
                 if (distance <= pointRadius && distance < minDistance)
                 {
@@ -201,7 +165,6 @@ namespace Onthesys.WebBuild
                 );
 
                 float distance = Vector2.Distance(mousePos, dotPos);
-                Debug.Log($"[TrendLineTooltip] Lower dot {i}: pos={dotPos}, distance={distance}");
 
                 if (distance <= pointRadius && distance < minDistance)
                 {
@@ -217,35 +180,23 @@ namespace Onthesys.WebBuild
         private void ShowDualTooltip(MeasureModel upperData, MeasureModel lowerData, Vector2 screenPosition)
         {
             if (tooltipPrefab == null)
-            {
-                Debug.LogWarning("[TrendLineTooltip] Tooltip prefab이 할당되지 않았습니다!");
                 return;
-            }
 
             Canvas parentCanvas = GetComponentInParent<Canvas>();
             if (parentCanvas == null)
-            {
-                Debug.LogWarning("[TrendLineTooltip] Parent canvas not found!");
                 return;
-            }
 
             // 툴팁이 없으면 새로 생성
             if (currentTooltip == null)
             {
-                Debug.Log($"[TrendLineTooltip] Creating new tooltip at {screenPosition}");
                 currentTooltip = Instantiate(tooltipPrefab, parentCanvas.transform);
             }
 
-            // 툴팁 내용 업데이트 (기존 툴팁이든 새 툴팁이든 항상 업데이트)
+            // 툴팁 내용 업데이트
             var tooltipDisplay = currentTooltip.GetComponent<DualTooltipDisplay>();
             if (tooltipDisplay != null)
             {
                 tooltipDisplay.Show(upperData, lowerData, screenPosition, uiCamera);
-                Debug.Log($"[TrendLineTooltip] Tooltip updated - Upper: {upperData.measured_value}, Lower: {lowerData.measured_value}");
-            }
-            else
-            {
-                Debug.LogError("[TrendLineTooltip] DualTooltipDisplay component not found on tooltip prefab!");
             }
         }
 
@@ -254,32 +205,13 @@ namespace Onthesys.WebBuild
             if (currentTooltip != null)
             {
                 var tooltipDisplay = currentTooltip.GetComponent<DualTooltipDisplay>();
-                if (tooltipDisplay != null)
-                {
-                    //Destroy 대신 Hide만 호출
-                    tooltipDisplay.Hide(); // onComplete 콜백 제거
-                }
-                //currentTooltip = null; 제거 (오브젝트 유지)
-                //Destroy 제거 (오브젝트 유지)
+                tooltipDisplay?.Hide();
             }
         }
 
-        private void CleanupTooltip()
-        {
-            if (currentTooltip != null)
-            {
-                Destroy(currentTooltip);
-                currentTooltip = null;
-            }
-        }
-
-        private void OnDestroy()
-        {
-            CleanupTooltip();
-        }
         #endregion
 
-        #region [기존 차트 그리기 로직 - 변경 없음]
+        #region [기존 차트 그리기 로직]
         protected override void OnRectTransformDimensionsChange() => UpdateUi();
 
         void Update()

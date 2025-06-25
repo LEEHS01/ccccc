@@ -17,8 +17,6 @@ public class DualTooltipDisplay : MonoBehaviour
     private RectTransform rectTransform;
     private Canvas parentCanvas;
 
-    private Tween currentFadeTween; // 현재 실행 중인 트윈 저장
-
     private void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
@@ -31,13 +29,6 @@ public class DualTooltipDisplay : MonoBehaviour
 
     public void Show(MeasureModel upperData, MeasureModel lowerData, Vector2 screenPosition, Camera uiCamera)
     {
-        //기존 애니메이션이 있으면 중지
-        if (currentFadeTween != null)
-        {
-            currentFadeTween.Kill();
-            currentFadeTween = null;
-        }
-
         // 데이터 표시
         if (upperValueText != null)
             upperValueText.text = $"상류: {upperData.measured_value:F1}";
@@ -51,38 +42,19 @@ public class DualTooltipDisplay : MonoBehaviour
         if (dateText != null)
             dateText.text = upperData.MeasuredTime.ToString("yyyy-MM-dd");
 
-        // 위치 업데이트 (항상 실행)
+        // 위치 업데이트
         SetPosition(screenPosition, uiCamera);
 
-        //애니메이션은 툴팁이 숨겨진 상태일 때만 실행
-        if (canvasGroup != null && canvasGroup.alpha < 0.1f)
-        {
-            currentFadeTween = canvasGroup.DOFade(1f, 0.2f).OnComplete(() => {
-                currentFadeTween = null; // 완료되면 참조 해제
-            });
-        }
+        // 즉시 표시 (애니메이션 없음)
+        if (canvasGroup != null)
+            canvasGroup.alpha = 1f;
     }
 
     public void Hide(System.Action onComplete = null)
     {
-        // 기존 애니메이션이 있으면 중지
-        if (currentFadeTween != null)
-        {
-            currentFadeTween.Kill();
-            currentFadeTween = null;
-        }
-
+        // 즉시 숨김 (애니메이션 없음)
         if (canvasGroup != null)
-        {
-            currentFadeTween = canvasGroup.DOFade(0f, 0.1f).OnComplete(() => {
-                currentFadeTween = null; // 완료되면 참조 해제
-                onComplete?.Invoke();
-            });
-        }
-        else
-        {
-            onComplete?.Invoke();
-        }
+            canvasGroup.alpha = 0f;
     }
 
     public void SetPosition(Vector2 screenPosition, Camera uiCamera)
@@ -99,6 +71,19 @@ public class DualTooltipDisplay : MonoBehaviour
                 uiCamera,
                 out localPoint
             );
+
+            /*// 핵심: 툴팁의 하단 중앙이 마우스 위치에 오도록 조정
+
+            // 먼저 레이아웃 업데이트로 실제 크기 계산
+            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+            Vector2 tooltipSize = rectTransform.rect.size;
+
+            // 툴팁의 pivot이 center(0.5, 0.5)라고 가정하고
+            // 하단 중앙이 마우스 위치에 오려면 Y축으로 툴팁 높이의 절반만큼 위로 이동
+            float yOffset = tooltipSize.y * 0.7f;
+
+            Vector2 finalPosition = localPoint + new Vector2(0, yOffset);
+            rectTransform.localPosition = finalPosition;*/
 
             // 기본 위치 설정
             rectTransform.localPosition = localPoint + new Vector2(10, 10);
