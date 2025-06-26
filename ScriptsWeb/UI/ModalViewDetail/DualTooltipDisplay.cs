@@ -59,6 +59,56 @@ public class DualTooltipDisplay : MonoBehaviour
 
     public void SetPosition(Vector2 screenPosition, Camera uiCamera)
     {
+        Debug.Log($"[SetPosition] 입력 스크린 위치: {screenPosition}");
+
+        if (parentCanvas == null)
+            parentCanvas = GetComponentInParent<Canvas>();
+
+        if (parentCanvas != null)
+        {
+            Vector2 localPoint;
+            bool success = RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                parentCanvas.transform as RectTransform,
+                screenPosition,
+                uiCamera,
+                out localPoint
+            );
+
+            Debug.Log($"[SetPosition] 변환 성공: {success}, 로컬 위치: {localPoint}");
+
+            if (success)
+            {
+                // 먼저 레이아웃 업데이트로 실제 크기 계산
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+                Vector2 tooltipSize = rectTransform.rect.size;
+
+                // 툴팁의 하단 중앙이 노드 위치에 오도록 Y축 오프셋 계산
+                // 툴팁 높이의 절반만큼 위로 이동 + 약간의 여백
+                float yOffset = tooltipSize.y * 1f + 10f; // 10픽셀 여백 추가
+
+                Vector2 finalPosition = localPoint + new Vector2(0, yOffset);
+                rectTransform.localPosition = finalPosition;
+
+                Debug.Log($"[SetPosition] 툴팁 크기: {tooltipSize}, Y 오프셋: {yOffset}");
+            }
+
+            /* if (success)
+             {
+                 // 기본 위치 설정 (오프셋 추가)
+                 Vector2 finalPosition = localPoint + new Vector2(20, 20);
+                 rectTransform.localPosition = finalPosition;
+
+                 Debug.Log($"[SetPosition] 최종 설정 위치: {finalPosition}");
+             }
+             else
+             {
+                 Debug.LogError("[SetPosition] 좌표 변환 실패!");
+             }*/
+        }
+    }
+
+    /*public void SetPosition(Vector2 screenPosition, Camera uiCamera)
+    {
         if (parentCanvas == null)
             parentCanvas = GetComponentInParent<Canvas>();
 
@@ -70,30 +120,16 @@ public class DualTooltipDisplay : MonoBehaviour
                 screenPosition,
                 uiCamera,
                 out localPoint
-            );
-
-            /*// 핵심: 툴팁의 하단 중앙이 마우스 위치에 오도록 조정
-
-            // 먼저 레이아웃 업데이트로 실제 크기 계산
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
-            Vector2 tooltipSize = rectTransform.rect.size;
-
-            // 툴팁의 pivot이 center(0.5, 0.5)라고 가정하고
-            // 하단 중앙이 마우스 위치에 오려면 Y축으로 툴팁 높이의 절반만큼 위로 이동
-            float yOffset = tooltipSize.y * 0.7f;
-
-            Vector2 finalPosition = localPoint + new Vector2(0, yOffset);
-            rectTransform.localPosition = finalPosition;*/
-
+            );         
             // 기본 위치 설정
             rectTransform.localPosition = localPoint + new Vector2(10, 10);
 
             // 화면 밖으로 나가지 않도록 조정
             KeepInBounds();
         }
-    }
+    }*/
 
-    private void KeepInBounds()
+    /*private void KeepInBounds()
     {
         if (parentCanvas == null) return;
 
@@ -122,5 +158,5 @@ public class DualTooltipDisplay : MonoBehaviour
             offset.y = canvasCorners[0].y - tooltipCorners[0].y + 10;
 
         rectTransform.position += offset;
-    }
+    }*/
 }

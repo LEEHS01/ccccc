@@ -67,6 +67,11 @@ namespace Onthesys.WebBuild
             // 툴팁을 위한 초기화
             chartRect = GetComponent<RectTransform>();
             Canvas parentCanvas = GetComponentInParent<Canvas>();
+            if (parentCanvas != null)
+            {
+                Debug.Log($"[Canvas] sortingOrder: {parentCanvas.sortingOrder}");
+                // parentCanvas.sortingOrder = 100;
+            }
             uiCamera = parentCanvas?.worldCamera ?? Camera.main;
         }
 
@@ -97,25 +102,38 @@ namespace Onthesys.WebBuild
         #region [툴팁 이벤트 처리]
         public void OnPointerMove(PointerEventData eventData)
         {
+
+            Debug.Log($"[OnPointerMove] 호출됨! 마우스: {eventData.position}");
             if (sensorLogs.upper.Count == 0 || sensorLogs.lower.Count == 0)
                 return;
 
-            // 마우스 위치를 로컬 좌표로 변환
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                chartRect, eventData.position, uiCamera, out Vector2 localMousePos))
-                return;
+            Vector2 screenMousePos = eventData.position;
 
             // 실제 점(노드) 근처에서만 툴팁 표시
-            var (closestIndex, isNearPoint) = FindClosestPointIndex(localMousePos);
+            var (closestIndex, isNearPoint) = FindClosestPointIndex(screenMousePos);
 
             if (closestIndex >= 0 && isNearPoint)
             {
+                Debug.Log($"[Step 1] 조건문 통과 - 인덱스: {closestIndex}");
+
+                Debug.Log($"[Step 2] 배열 크기 확인 - 상류: {sensorLogs.upper?.Count}, 하류: {sensorLogs.lower?.Count}");
+
+                Debug.Log($"[Step 3] upperData 추출 시작");
                 var upperData = sensorLogs.upper[closestIndex];
+                Debug.Log($"[Step 4] upperData 추출 완료: {upperData?.measured_value}");
+
+                Debug.Log($"[Step 5] lowerData 추출 시작");
                 var lowerData = sensorLogs.lower[closestIndex];
+                Debug.Log($"[Step 6] lowerData 추출 완료: {lowerData?.measured_value}");
+
+                Debug.Log($"[Step 7] ShowDualTooltip 호출 시작");
                 ShowDualTooltip(upperData, lowerData, eventData.position);
+                Debug.Log($"[Step 8] ShowDualTooltip 호출 완료");
+
             }
             else
             {
+                Debug.Log($"[OnPointerMove] 툴팁 숨김");
                 HideTooltip();
             }
         }
@@ -129,24 +147,25 @@ namespace Onthesys.WebBuild
         /// 점 찾기 알고리즘
         /// </summary>
         /// <returns></returns>
-        private (int index, bool isNearPoint) FindClosestPointIndex(Vector2 mousePos)
+        private (int index, bool isNearPoint) FindClosestPointIndex(Vector2 screenMousePos)
         {
             float minDistance = float.MaxValue;
             int closestIndex = -1;
             bool isNearPoint = false;
+            float pointRadius = 50f;
 
-            // 점 감지를 위한 허용 반경 (픽셀 단위)
-            float pointRadius = 30f;
+            Debug.Log($"[Debug] 마우스 Screen 위치: ({screenMousePos.x:F1}, {screenMousePos.y:F1})");
 
             // 상류 점들 검사
             for (int i = 0; i < dots.upper.Count; i++)
             {
-                Vector2 dotPos = new Vector2(
-                    dots.upper[i].localPosition.x + dots.upper[i].parent.localPosition.x,
-                    dots.upper[i].localPosition.y + dots.upper[i].parent.localPosition.y
-                );
+                Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, dots.upper[i].position);
+                float distance = Vector2.Distance(screenMousePos, screenPos);
 
-                float distance = Vector2.Distance(mousePos, dotPos);
+                /*if (distance <= pointRadius * 2f)
+                {
+                    Debug.Log($"[Debug] 상류[{i}]: Screen위치({screenPos.x:F1}, {screenPos.y:F1}), 거리: {distance:F1}");
+                }*/
 
                 if (distance <= pointRadius && distance < minDistance)
                 {
@@ -159,12 +178,13 @@ namespace Onthesys.WebBuild
             // 하류 점들 검사
             for (int i = 0; i < dots.lower.Count; i++)
             {
-                Vector2 dotPos = new Vector2(
-                    dots.lower[i].localPosition.x + dots.lower[i].parent.localPosition.x,
-                    dots.lower[i].localPosition.y + dots.lower[i].parent.localPosition.y
-                );
+                Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, dots.lower[i].position);
+                float distance = Vector2.Distance(screenMousePos, screenPos);
 
-                float distance = Vector2.Distance(mousePos, dotPos);
+                /*if (distance <= pointRadius * 2f)
+                {
+                    Debug.Log($"[Debug] 하류[{i}]: Screen위치({screenPos.x:F1}, {screenPos.y:F1}), 거리: {distance:F1}");
+                }*/
 
                 if (distance <= pointRadius && distance < minDistance)
                 {
@@ -174,11 +194,19 @@ namespace Onthesys.WebBuild
                 }
             }
 
+            if (isNearPoint)
+            {
+                Debug.Log($"[Debug] 최종 선택: 인덱스[{closestIndex}], 거리: {minDistance:F1}");
+            }
+
+
             return (closestIndex, isNearPoint);
         }
 
         private void ShowDualTooltip(MeasureModel upperData, MeasureModel lowerData, Vector2 screenPosition)
         {
+            Debug.Log($"[ShowDualTooltip] 메서드 진입 확인!");
+            Debug.Log($"[ShowDualTooltip] 요청 위치: {screenPosition}");
             if (tooltipPrefab == null)
                 return;
 
@@ -190,6 +218,7 @@ namespace Onthesys.WebBuild
             if (currentTooltip == null)
             {
                 currentTooltip = Instantiate(tooltipPrefab, parentCanvas.transform);
+                Debug.Log($"[ShowDualTooltip] 툴팁 생성 완료: {currentTooltip.name}");
             }
 
             // 툴팁 내용 업데이트
@@ -198,6 +227,9 @@ namespace Onthesys.WebBuild
             {
                 tooltipDisplay.Show(upperData, lowerData, screenPosition, uiCamera);
             }
+
+            // 최종 위치 확인
+            Debug.Log($"[ShowDualTooltip] 최종 툴팁 위치: {currentTooltip.transform.position}");
         }
 
         private void HideTooltip()
@@ -285,6 +317,8 @@ namespace Onthesys.WebBuild
 
             UpdateUi();
         }
+
+
 
         void UpdateUi()
         {
