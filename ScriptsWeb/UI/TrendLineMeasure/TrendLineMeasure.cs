@@ -5,12 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Onthesys.WebBuild
 {
-    internal class TrendLineMeasure : MaskableGraphic
+    internal class TrendLineMeasure : MaskableGraphic, IPointerMoveHandler, IPointerExitHandler
     {
+        [Header("Tooltip Settings")]
+        public GameObject tooltipPrefab; // TrendLineTooltipPrefab 할당
+        public float pointRadius = 50f;   // 포인트 감지 반경
+
         ModelProvider modelProvider => UiManager.Instance.modelProvider;
 
         //Data
@@ -18,7 +23,12 @@ namespace Onthesys.WebBuild
         (DateTime from, DateTime to) datetime;
         SensorModel sensorData;
         List<MeasureModel> sensorLogs = new();
-        
+
+        //Tooltip
+        private GameObject currentTooltip;
+        private Camera uiCamera;
+        private RectTransform chartRect;
+
         //Func
         List<Vector2> ControlPoints => dots.Select(dot =>
             new Vector2(dot.localPosition.x, dot.localPosition.y)
@@ -72,6 +82,8 @@ namespace Onthesys.WebBuild
 
         protected override void Awake()
         {
+            raycastTarget = true;
+
             //lblName = transform.Find("Title_Image").GetComponentInChildren<TMP_Text>();
 
             lblAmountList = transform.Find("Chart_Grid").Find("Text_Vertical").GetComponentsInChildren<TMP_Text>().ToList();
@@ -82,8 +94,16 @@ namespace Onthesys.WebBuild
             dots.Remove(transform.Find("Chart_Dots").GetComponent<RectTransform>());
             sensorLogs = dots.Select(item => new MeasureModel()).ToList();
 
-
             lblIsFixing?.gameObject.SetActive(false);
+
+            // 툴팁을 위한 초기화 - TrendLineUpAndLow2와 동일
+            chartRect = GetComponent<RectTransform>();
+            Canvas parentCanvas = GetComponentInParent<Canvas>();
+            if (parentCanvas != null)
+            {
+                Debug.Log($"[Canvas] sortingOrder: {parentCanvas.sortingOrder}");
+            }
+            uiCamera = parentCanvas?.worldCamera ?? Camera.main;
         }
         protected override void Start()
         {
@@ -94,6 +114,117 @@ namespace Onthesys.WebBuild
             //UiManager.Instance?.Register(UiEventType.ChangeRecentValue, OnChangeRecentValue);
             UiManager.Instance?.Register(UiEventType.ChangeTrendLine, OnChangeTrendLine);
         }
+        #endregion
+
+        #region [툴팁 이벤트 처리]
+
+        public void OnPointerMove(PointerEventData eventData)
+        {
+            Debug.Log($"Main-[OnPointerMove] 호출됨! 마우스: {eventData.position}");
+
+            if (sensorLogs.Count == 0 || sensorData == null)
+                return;
+
+            Vector2 screenMousePos = eventData.position;
+
+            // 실제 점(노드) 근처에서만 툴팁 표시
+            var (closestIndex, isNearPoint) = FindClosestPointIndex(screenMousePos);
+
+            if (closestIndex >= 0 && isNearPoint)
+            {
+                Debug.Log($"Main-[Step 1] 조건문 통과 - 인덱스: {closestIndex}");
+                Debug.Log($"Main-[Step 2] 배열 크기 확인 - 센서로그: {sensorLogs?.Count}");
+
+                var measureData = sensorLogs[closestIndex];
+                Debug.Log($"Main-[Step 3] measureData 추출 완료: {measureData?.measured_value}");
+
+                ShowSingleTooltip(measureData, eventData.position);
+                Debug.Log($"Main-[Step 4] ShowSingleTooltip 호출 완료");
+            }
+            else
+            {
+                Debug.Log($"Main-[OnPointerMove] 툴팁 숨김");
+                HideTooltip();
+            }
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            HideTooltip();
+        }
+
+        private (int index, bool isNearPoint) FindClosestPointIndex(Vector2 screenMousePos)
+        {
+            float minDistance = float.MaxValue;
+            int closestIndex = -1;
+            bool isNearPoint = false;
+            float pointRadius = 50f; // TrendLineUpAndLow2와 동일한 감지 반경
+
+            Debug.Log($"[Debug]Main- 마우스 Screen 위치: ({screenMousePos.x:F1}, {screenMousePos.y:F1})");
+
+            // 점들 검사 - TrendLineUpAndLow2와 동일한 방식
+            for (int i = 0; i < dots.Count; i++)
+            {
+                if (i >= sensorLogs.Count) continue;
+
+                Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(uiCamera, dots[i].position);
+                float distance = Vector2.Distance(screenMousePos, screenPos);
+
+                if (distance <= pointRadius && distance < minDistance)
+                {
+                    minDistance = distance;
+                    closestIndex = i;
+                    isNearPoint = true;
+                }
+            }
+
+            if (isNearPoint)
+            {
+                Debug.Log($"[Debug]Main- 최종 선택: 인덱스[{closestIndex}], 거리: {minDistance:F1}");
+            }
+
+            return (closestIndex, isNearPoint);
+        }
+
+        private void ShowSingleTooltip(MeasureModel measureData, Vector2 screenPosition)
+        {
+            Debug.Log($"[Main-ShowSingleTooltip] 메서드 진입 확인!");
+            Debug.Log($"[Main-ShowSingleTooltip] 요청 위치: {screenPosition}");
+
+            if (tooltipPrefab == null)
+                return;
+
+            Canvas parentCanvas = GetComponentInParent<Canvas>();
+            if (parentCanvas == null)
+                return;
+
+            // 툴팁이 없으면 새로 생성
+            if (currentTooltip == null)
+            {
+                currentTooltip = Instantiate(tooltipPrefab, parentCanvas.transform);
+                Debug.Log($"[Main-ShowSingleTooltip] 툴팁 생성 완료: {currentTooltip.name}");
+            }
+
+            // 툴팁 내용 업데이트 - DualTooltipDisplay 대신 SingleTooltipDisplay 사용
+            var tooltipDisplay = currentTooltip.GetComponent<SingleTooltipDisplay>();
+            if (tooltipDisplay != null)
+            {
+                tooltipDisplay.Show(measureData, sensorData, screenPosition, uiCamera);
+            }
+
+            // 최종 위치 확인
+            Debug.Log($"[Main-ShowSingleTooltip] 최종 툴팁 위치: {currentTooltip.transform.position}");
+        }
+
+        private void HideTooltip()
+        {
+            if (currentTooltip != null)
+            {
+                var tooltipDisplay = currentTooltip.GetComponent<SingleTooltipDisplay>();
+                tooltipDisplay?.Hide();
+            }
+        }
+
         #endregion
 
         #region [Draw]

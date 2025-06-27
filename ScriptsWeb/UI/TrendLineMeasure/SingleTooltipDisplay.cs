@@ -2,16 +2,15 @@
 using UnityEngine.UI;
 using TMPro;
 using System;
-using DG.Tweening;
 using Onthesys.WebBuild;
 
-public class DualTooltipDisplay : MonoBehaviour
+public class SingleTooltipDisplay : MonoBehaviour
 {
     [Header("UI References")]
-    public TMP_Text upperValueText;
-    public TMP_Text lowerValueText;
-    public TMP_Text timeText;
-    public TMP_Text dateText;
+    public TMP_Text txtDate;    // MainLayout/txtDate
+    public TMP_Text txtTime;    // MainLayout/txtTime  
+    public TMP_Text txtSensor;  
+
     public CanvasGroup canvasGroup;
 
     private RectTransform rectTransform;
@@ -27,40 +26,56 @@ public class DualTooltipDisplay : MonoBehaviour
             canvasGroup.alpha = 0f;
     }
 
-    public void Show(MeasureModel upperData, MeasureModel lowerData, Vector2 screenPosition, Camera uiCamera)
+    public void Show(MeasureModel measureData, SensorModel sensorData, Vector2 screenPosition, Camera uiCamera)
     {
-        // 데이터 표시
-        if (upperValueText != null)
-            upperValueText.text = $"상류: {upperData.measured_value:F1}";
+        // 날짜 표시
+        if (txtDate != null)
+            txtDate.text = measureData.MeasuredTime.ToString("yyyy-MM-dd");
 
-        if (lowerValueText != null)
-            lowerValueText.text = $"하류: {lowerData.measured_value:F1}";
+        // 시간 표시  
+        if (txtTime != null)
+            txtTime.text = measureData.MeasuredTime.ToString("HH:mm:ss");
 
-        if (timeText != null)
-            timeText.text = upperData.MeasuredTime.ToString("HH:mm:ss");
+        // 센서명과 값을 한 줄로 표시
+        if (txtSensor != null)
+        {
+            string unit = sensorData.unit ?? "";
+            string locationText = measureData.board_id == 1 ? "상류" : "하류";
+            txtSensor.text = $"{sensorData.sensor_name}: {measureData.measured_value:F1}{unit}";
 
-        if (dateText != null)
-            dateText.text = upperData.MeasuredTime.ToString("yyyy-MM-dd");
+            // 상류/하류에 따른 색상 설정
+            Color textColor = GetLocationColor(measureData.board_id);
+            txtSensor.color = textColor;
+
+            Debug.Log($"[Tooltip] {locationText} 센서 색상 적용: {textColor}");
+        }
 
         // 위치 업데이트
         SetPosition(screenPosition, uiCamera);
 
-        // 즉시 표시 (애니메이션 없음)
+        // 즉시 표시
         if (canvasGroup != null)
             canvasGroup.alpha = 1f;
+    }
+    // 상류/하류에 따른 색상 반환
+    private Color GetLocationColor(int boardId)
+    {
+        if (boardId == 1) return new Color(0f, 1f, 1f, 1f);  // 상류: #00FFFF
+        if (boardId == 2) return new Color(1f, 1f, 0f, 1f);  // 하류: #FFFF00
+        return Color.white; // 기본값
     }
 
     public void Hide(System.Action onComplete = null)
     {
-        // 즉시 숨김 (애니메이션 없음)
+        // 즉시 숨김
         if (canvasGroup != null)
             canvasGroup.alpha = 0f;
+
+        onComplete?.Invoke();
     }
 
     public void SetPosition(Vector2 screenPosition, Camera uiCamera)
     {
-        Debug.Log($"[SetPosition] 입력 스크린 위치: {screenPosition}");
-
         if (parentCanvas == null)
             parentCanvas = GetComponentInParent<Canvas>();
 
@@ -73,8 +88,6 @@ public class DualTooltipDisplay : MonoBehaviour
                 uiCamera,
                 out localPoint
             );
-
-            Debug.Log($"[SetPosition] 변환 성공: {success}, 로컬 위치: {localPoint}");
 
             if (success)
             {
@@ -99,7 +112,7 @@ public class DualTooltipDisplay : MonoBehaviour
                 // 오른쪽 끝 노드들 - 툴팁을 왼쪽으로 이동  
                 else if (screenPosition.x > rightBoundary)
                 {
-                    offset.x = -tooltipSize.x * 0.3f; // 툴팁을 왼쪽으로
+                    offset.x = -tooltipSize.x * 0.4f; // 툴팁을 왼쪽으로
                     Debug.Log("[SetPosition] 오른쪽 끝 노드 - 왼쪽으로 이동");
                 }
 
@@ -108,26 +121,16 @@ public class DualTooltipDisplay : MonoBehaviour
 
                 Debug.Log($"[SetPosition] 스크린 위치: {screenPosition.x}, 최종 오프셋: {offset}");
 
-/*                Vector2 finalPosition = localPoint + new Vector2(0, yOffset);
-                rectTransform.localPosition = finalPosition;
+                /*// 레이아웃 업데이트로 실제 크기 계산
+                LayoutRebuilder.ForceRebuildLayoutImmediate(rectTransform);
+                Vector2 tooltipSize = rectTransform.rect.size;
 
-                Debug.Log($"[SetPosition] 툴팁 크기: {tooltipSize}, Y 오프셋: {yOffset}");*/
+                // 툴팁이 노드 위쪽에 나타나도록 Y축 오프셋 계산
+                float yOffset = tooltipSize.y * 1f ;
+
+                Vector2 finalPosition = localPoint + new Vector2(0, yOffset);
+                rectTransform.localPosition = finalPosition;*/
             }
-
-            /* if (success)
-             {
-                 // 기본 위치 설정 (오프셋 추가)
-                 Vector2 finalPosition = localPoint + new Vector2(20, 20);
-                 rectTransform.localPosition = finalPosition;
-
-                 Debug.Log($"[SetPosition] 최종 설정 위치: {finalPosition}");
-             }
-             else
-             {
-                 Debug.LogError("[SetPosition] 좌표 변환 실패!");
-             }*/
         }
     }
-
-    
 }
