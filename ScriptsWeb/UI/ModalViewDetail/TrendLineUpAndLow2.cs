@@ -369,12 +369,29 @@ namespace Onthesys.WebBuild
                 DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
                 TimeSpan timeSpan = datetime.to - datetime.from;
 
-                if (timeSpan.TotalDays < 1f)
+                if (timeSpan.TotalDays < 4f)
+                {
+                    if (item == lblHourList.Last() || item == lblHourList.First())
+                    {
+                        //날짜는 위쪽에, 시간은 아래쪽에 배치
+                        item.text = $"\n{dt:dd}일{dt:HH:mm}";
+                    }
+                    else
+                    {
+                        // 중간은 시간만 표시
+                        item.text = $"\n{dt:HH:mm}";
+                    }
+                }
+                else
+                {
+                    item.text = dt.ToString("MM.dd");
+                }
+                /*if (timeSpan.TotalDays < 1f)
                     item.text = dt.ToString("HH:mm");
                 else if (timeSpan.TotalDays < 4f)
                     item.text = dt.ToString("yy-MM-dd\nHH:mm");
                 else
-                    item.text = dt.ToString("yy-MM-dd");
+                    item.text = dt.ToString("yy-MM-dd");*/
             });
         }
 

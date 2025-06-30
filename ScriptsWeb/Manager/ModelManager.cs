@@ -196,15 +196,19 @@ namespace Onthesys.WebBuild
             });
         }
 
+        // 클래스 변수 추가
+        List<MeasureModel> measureLogRaw = new();
         bool isWeek = false;
-        private void OnChangeTimeSpan(object obj) {
+        private void OnChangeTimeSpan(object obj)
+        {
             if (obj is not bool isWeek) return;
             this.isWeek = isWeek;
 
             DateTime toDt = DateTimeKst.Now;
-            DateTime fromDt = DateTimeKst.Now.AddDays(isWeek? -7 : -1);
+            DateTime fromDt = DateTimeKst.Now.AddDays(isWeek ? -7 : -1);
 
-            dbManager.GetMeasureLog(fromDt, toDt,  measureLogs =>  {
+            // 기존: 트렌드용 평균 데이터
+            dbManager.GetMeasureLog(fromDt, toDt, measureLogs => {
                 this.measureLogs.Clear();
                 this.measureLogs.AddRange(measureLogs);
                 groupedMeasureLogs = measureLogs
@@ -213,8 +217,21 @@ namespace Onthesys.WebBuild
 
                 UiManager.Instance.Invoke(UiEventType.ChangeTrendLine);
             });
+
+            // 새로 추가: 툴팁용 원시 데이터
+            dbManager.GetMeasureLogRaw(fromDt, toDt, rawLogs => {
+                this.measureLogRaw.Clear();
+                this.measureLogRaw.AddRange(rawLogs);
+                Debug.Log($"[ModelManager] 원시 데이터 로드됨: {rawLogs.Count}개");
+                if (rawLogs.Count > 0)
+                {
+                    Debug.Log($"[ModelManager] 첫 번째 원시 데이터: {rawLogs[0].MeasuredTime:yyyy-MM-dd HH:mm:ss}");
+                    Debug.Log($"[ModelManager] 마지막 원시 데이터: {rawLogs[rawLogs.Count - 1].MeasuredTime:yyyy-MM-dd HH:mm:ss}");
+                }
+            });
+
         }
-        
+
         private void OnRequestSmsUpdate(object obj)
         {
             if(obj is not (int serviceId, SmsServiceModel updatedModel)) return;
@@ -396,6 +413,8 @@ namespace Onthesys.WebBuild
         #endregion [Datastructs]
 
         #region [ModelProvider]
+        public List<MeasureModel> GetMeasureLogRaw() => new(measureLogRaw); //0630
+
         public List<MeasureModel> GetMeasureLogBySensor(int boardId, int sensorId)
             => groupedMeasureLogs.TryGetValue((boardId, sensorId), out var measures) ? measures : new List<MeasureModel>();
 
