@@ -19,7 +19,7 @@ namespace Onthesys.WebBuild
         public StatusType GetStatusBySensor(int boardId, int sensorId);
         public StatusType GetStatusBySensorAndValue(int boardId, int sensorId, float value);
         public List<AlarmStatisticModel> GetAlarmStatistics();
-        public List<MeasureModel> GetMeasureLogRaw();
+
 
         public List<SmsServiceModel> GetSmsServices();
         public SmsServiceModel GetSmsServiceById(int serviceId);

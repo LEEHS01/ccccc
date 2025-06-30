@@ -138,28 +138,9 @@ namespace Onthesys.WebBuild
         internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
             => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));
 
-        internal void GetMeasureLogRaw(DateTime fromDt, DateTime toDt, Action<List<MeasureModel>> callback)
-            => StartCoroutine(GetMeasureLogRawFunc(fromDt, toDt, callback));
-
         #endregion
 
         #region [DB 요청 및 처리문]
-        IEnumerator GetMeasureLogRawFunc(DateTime fromDt, DateTime toDt, Action<List<MeasureModel>> callback)
-        {
-            // 프로시저 없이 직접 measure_log 조회
-            var query = $@"
-                SELECT board_id, sensor_id, measured_value, measured_time 
-                FROM WEB_DP.dbo.measure_log 
-                WHERE measured_time BETWEEN '{fromDt:yyyy-MM-dd HH:mm:ss}' 
-                 AND '{toDt:yyyy-MM-dd HH:mm:ss}'
-                ORDER BY measured_time ASC";
-
-            yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
-            {
-                var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
-                callback(wrapper.items);
-            });
-        }
         IEnumerator GetSensorDataFunc(Action<List<SensorModel>> callback)
         {
             var query = @"SELECT * FROM WEB_DP.dbo.sensor";

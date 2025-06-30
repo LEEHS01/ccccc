@@ -3,7 +3,6 @@ using UnityEngine.UI;
 using TMPro;
 using System;
 using Onthesys.WebBuild;
-using System.Linq;
 
 public class SingleTooltipDisplay : MonoBehaviour
 {
@@ -29,69 +28,35 @@ public class SingleTooltipDisplay : MonoBehaviour
 
     public void Show(MeasureModel measureData, SensorModel sensorData, Vector2 screenPosition, Camera uiCamera)
     {
-        // 원시 데이터에서 가장 가까운 시간 찾기
-        var rawData = FindClosestRawData(measureData, sensorData);
-
         // 날짜 표시
         if (txtDate != null)
-            txtDate.text = (rawData?.MeasuredTime ?? measureData.MeasuredTime).ToString("yyyy-MM-dd");
+            txtDate.text = measureData.MeasuredTime.ToString("yyyy-MM-dd");
 
-        // 시간 표시 (원시 데이터 우선)
+        // 시간 표시  
         if (txtTime != null)
-            txtTime.text = (rawData?.MeasuredTime ?? measureData.MeasuredTime).ToString("HH:mm:ss");
+            txtTime.text = measureData.MeasuredTime.ToString("HH:mm:ss");
 
-        // 센서값 표시 (원시 데이터 우선)
+        // 센서명과 값을 한 줄로 표시
         if (txtSensor != null)
         {
             string unit = sensorData.unit ?? "";
-            string locationText = (rawData?.board_id ?? measureData.board_id) == 1 ? "상류" : "하류";
-            float value = rawData?.measured_value ?? measureData.measured_value;
-            txtSensor.text = $"{sensorData.sensor_name}: {value:F1}{unit}";
+            string locationText = measureData.board_id == 1 ? "상류" : "하류";
+            txtSensor.text = $"{sensorData.sensor_name}: {measureData.measured_value:F1}{unit}";
 
-            Color textColor = GetLocationColor(rawData?.board_id ?? measureData.board_id);
+            // 상류/하류에 따른 색상 설정
+            Color textColor = GetLocationColor(measureData.board_id);
             txtSensor.color = textColor;
+
+            Debug.Log($"[Tooltip] {locationText} 센서 색상 적용: {textColor}");
         }
 
+        // 위치 업데이트
         SetPosition(screenPosition, uiCamera);
 
+        // 즉시 표시
         if (canvasGroup != null)
             canvasGroup.alpha = 1f;
     }
-
-    private MeasureModel FindClosestRawData(MeasureModel measureData, SensorModel sensorData)
-    {
-        try
-        {
-            var rawLogs = UiManager.Instance.modelProvider.GetMeasureLogRaw();
-
-            // 🔍 원시 데이터 개수 확인
-            Debug.Log($"[툴팁] 원시 데이터 개수: {rawLogs.Count}");
-
-            var result = rawLogs
-                .Where(log => log.board_id == sensorData.board_id && log.sensor_id == sensorData.sensor_id)
-                .OrderBy(log => Math.Abs((log.MeasuredTime - measureData.MeasuredTime).TotalMinutes))
-                .FirstOrDefault();
-
-            if (result != null)
-            {
-                // 🔍 원시 데이터 vs 기존 데이터 비교
-                Debug.Log($"[툴팁] 기존 데이터: {measureData.MeasuredTime:yyyy-MM-dd HH:mm:ss} = {measureData.measured_value:F1}");
-                Debug.Log($"[툴팁] 원시 데이터: {result.MeasuredTime:yyyy-MM-dd HH:mm:ss} = {result.measured_value:F1}");
-            }
-            else
-            {
-                Debug.Log("[툴팁] 원시 데이터를 찾을 수 없음");
-            }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"[툴팁] 원시 데이터 조회 실패: {ex.Message}");
-            return null;
-        }
-    }
-
     // 상류/하류에 따른 색상 반환
     private Color GetLocationColor(int boardId)
     {
