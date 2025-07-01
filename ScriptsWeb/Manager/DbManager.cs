@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -43,8 +44,8 @@ namespace Onthesys.WebBuild
         /// <param name="fromDt"></param>
         /// <param name="toDt"></param>
         /// <param name="callback"></param>
-        internal void GetMeasureLog(DateTime fromDt, DateTime toDt, Action<List<MeasureModel>> callback)
-            => StartCoroutine(GetMeasureLogFunc(fromDt, toDt, callback));
+        internal void GetMeasureLog(DateTime fromDt, DateTime toDt, bool isWeek, Action<List<MeasureModel>> callback)
+         => StartCoroutine(GetMeasureLogFunc(fromDt, toDt, isWeek, callback));
         /// <summary>
         /// 현재(가장 최근) 계측값들을 가져오는 함수입니다.
         /// </summary>
@@ -153,34 +154,33 @@ namespace Onthesys.WebBuild
                 callback(wrapper.items);
             });
         }
-        IEnumerator GetMeasureLogFunc(DateTime fromDt, DateTime toDt, Action<List<MeasureModel>> callback)
+        IEnumerator GetMeasureLogFunc(DateTime fromDt, DateTime toDt, bool isWeek, Action<List<MeasureModel>> callback)
         {
+            int elementCount = isWeek ? 28 : 24;
+
             var query = $@"EXEC GET_MEASURE_TIME_RANGE_WHOLE
                 @table_name = 'measure_log',
                 @start_time = '{fromDt:yyyy-MM-dd HH:mm:ss}',
                 @end_time = '{toDt:yyyy-MM-dd HH:mm:ss}',
-                @element_count = 26,
+                @element_count = {elementCount},
                 @default_value = 0.0;";
+
+            Debug.Log($"쿼리 실행: elementCount={elementCount}, 기간={fromDt} ~ {toDt}");
 
             yield return ResponseQuery(QueryType.SELECT.ToString(), query, result =>
             {
+                Debug.Log($"DB 응답 원본: {result.Substring(0, Math.Min(500, result.Length))}...");
 
-                //Debug.Log("GetSensorDataFunc : " + result);
                 var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
-                callback(wrapper.items);
-                //foreach (var item in wrapper.items)
-                //{
-                //    Debug.Log($"[{item.board_id} - {item.sensor_id}][{item.measured_time.ToString()}] : {item.measured_value}");
-                //}
-                //Debug.Log($"GetMeasureLogFunc : {wrapper.items.Count} items received from DB between {fromDt:yyyy-MM-dd HH:mm:ss} and {toDt:yyyy-MM-dd HH:mm:ss}.");
 
-                //WEBGL에서는 ... 무조건 단일 쓰레드...
-                //List<MeasureModel> parsed = null;
-                //Task.Run(() => 
-                //    parsed = JsonUtility.FromJson<MeasureModelList>(result).items
-                //).ContinueWith(_ => 
-                //    UnityMainThreadDispatcher.Instance().Enqueue(() => callback(parsed))
-                //);
+                // 센서별 데이터 개수 확인
+                var grouped = wrapper.items.GroupBy(x => (x.board_id, x.sensor_id));
+                foreach (var group in grouped)
+                {
+                    Debug.Log($"센서 [{group.Key.board_id}-{group.Key.sensor_id}]: {group.Count()}개, 첫번째값: {group.First().measured_value}");
+                }
+
+                callback(wrapper.items);
             });
         }
         IEnumerator GetMeasureRecentFunc(Action<List<MeasureModel>> callback)

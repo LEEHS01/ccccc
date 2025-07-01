@@ -283,15 +283,22 @@ namespace Onthesys.WebBuild
         }
         private void OnChangeTrendLine(object obj)
         {
+            Debug.Log($"OnChangeTrendLine - boardId: {boardId}, sensorId: {sensorId}");
+
             sensorLogs = modelProvider.GetMeasureLogBySensor(boardId, sensorId);
+
+            Debug.Log($"가져온 데이터 개수: {sensorLogs.Count}");
+            if (sensorLogs.Count > 0)
+            {
+                Debug.Log($"첫번째 값: {sensorLogs[0].measured_value}, 마지막 값: {sensorLogs.Last().measured_value}");
+                Debug.Log($"시간 범위: {sensorLogs[0].measured_time} ~ {sensorLogs.Last().measured_time}");
+            }
 
             while (sensorLogs.Count > dots.Count)
                 sensorLogs.Remove(sensorLogs.First());
 
-            datetime.from = (sensorLogs.Last().MeasuredTime- sensorLogs.First().MeasuredTime > new TimeSpan(50,0,0))? DateTimeKst.Now.AddDays(-7) : DateTimeKst.Now.AddDays(-1);
-            datetime.to= DateTimeKst.Now;
-
-            //Debug.Log($"[TrendLineMeasure] OnChangeTrendLine - boardId: {boardId}, sensorId: {sensorId}, datetime.from: {sensorLogs.First().measured_time}, datetime.to: {sensorLogs.Last().measured_time}");
+            datetime.from = (sensorLogs.Last().MeasuredTime - sensorLogs.First().MeasuredTime > new TimeSpan(50, 0, 0)) ? DateTimeKst.Now.AddDays(-7) : DateTimeKst.Now.AddDays(-1);
+            datetime.to = DateTimeKst.Now;
 
             UpdateUi();
         }

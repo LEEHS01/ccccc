@@ -62,7 +62,7 @@ namespace Onthesys.WebBuild
 
             DateTime toDt = DateTimeKst.Now;
             DateTime fromDt = DateTimeKst.Now.AddMinutes(-Option.TREND_TIME_RANGE);
-            dbManager.GetMeasureLog(fromDt, toDt, measureLogs =>
+            dbManager.GetMeasureLog(fromDt, toDt, false, measureLogs =>  // false (일간 모드)로 초기화
             {
                 this.measureLogs.AddRange(measureLogs);
                 groupedMeasureLogs = measureLogs
@@ -197,14 +197,15 @@ namespace Onthesys.WebBuild
         }
 
         bool isWeek = false;
-        private void OnChangeTimeSpan(object obj) {
+        private void OnChangeTimeSpan(object obj)
+        {
             if (obj is not bool isWeek) return;
             this.isWeek = isWeek;
 
             DateTime toDt = DateTimeKst.Now;
-            DateTime fromDt = DateTimeKst.Now.AddDays(isWeek? -7 : -1);
+            DateTime fromDt = DateTimeKst.Now.AddDays(isWeek ? -7 : -1);
 
-            dbManager.GetMeasureLog(fromDt, toDt,  measureLogs =>  {
+            dbManager.GetMeasureLog(fromDt, toDt, isWeek, measureLogs => {
                 this.measureLogs.Clear();
                 this.measureLogs.AddRange(measureLogs);
                 groupedMeasureLogs = measureLogs
@@ -214,7 +215,7 @@ namespace Onthesys.WebBuild
                 UiManager.Instance.Invoke(UiEventType.ChangeTrendLine);
             });
         }
-        
+
         private void OnRequestSmsUpdate(object obj)
         {
             if(obj is not (int serviceId, SmsServiceModel updatedModel)) return;
@@ -396,8 +397,18 @@ namespace Onthesys.WebBuild
         #endregion [Datastructs]
 
         #region [ModelProvider]
+        /*public List<MeasureModel> GetMeasureLogBySensor(int boardId, int sensorId)
+            => groupedMeasureLogs.TryGetValue((boardId, sensorId), out var measures) ? measures : new List<MeasureModel>();*/
         public List<MeasureModel> GetMeasureLogBySensor(int boardId, int sensorId)
-            => groupedMeasureLogs.TryGetValue((boardId, sensorId), out var measures) ? measures : new List<MeasureModel>();
+        {
+            Debug.Log($"GetMeasureLogBySensor 요청: boardId={boardId}, sensorId={sensorId}");
+
+            var result = groupedMeasureLogs.TryGetValue((boardId, sensorId), out var measures) ? measures : new List<MeasureModel>();
+
+            Debug.Log($"GetMeasureLogBySensor 결과: {result.Count}개, 첫번째 값: {(result.Count > 0 ? result[0].measured_value.ToString() : "없음")}");
+
+            return result;
+        }
 
         public List<MeasureModel> GetMeasureLogList() => measureLogs;
 
