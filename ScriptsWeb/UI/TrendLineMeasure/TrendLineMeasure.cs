@@ -270,25 +270,63 @@ namespace Onthesys.WebBuild
         {
             if (lblHourList == null) return;
 
-            lblHourList.ForEach(item =>
-            {
-                float ratio = (float)lblHourList.IndexOf(item) / (lblHourList.Count - 1);
-                DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
-                TimeSpan timeSpan = datetime.to - datetime.from;
+            bool isWeek = weeklyGrid.activeSelf;
 
-                if (timeSpan.TotalDays < 4f)
+            if (isWeek && sensorLogs.Count > 0)
+            {
+                // 주간모드: 실제 데이터의 시간을 기준으로 라벨 생성
+                lblHourList.ForEach(item =>
                 {
-                    if (item == lblHourList.Last() || item == lblHourList.First())
-                        item.text = $"\n{dt:dd}일{dt:HH:mm}";
+                    int labelIndex = lblHourList.IndexOf(item);
+
+                    // 실제 데이터 개수에 맞춰 인덱스 계산
+                    int dataIndex = Mathf.RoundToInt((float)labelIndex / (lblHourList.Count - 1) * (sensorLogs.Count - 1));
+                    dataIndex = Mathf.Clamp(dataIndex, 0, sensorLogs.Count - 1);
+
+                    if (dataIndex < sensorLogs.Count)
+                    {
+                        DateTime actualTime = sensorLogs[dataIndex].MeasuredTime;
+                        item.text = actualTime.ToString("MM.dd\nHH:mm");
+                    }
                     else
-                        item.text = $"\n{dt:HH:mm}";
-                }
-                else
+                    {
+                        // Fallback: 비율로 계산
+                        float ratio = (float)labelIndex / (lblHourList.Count - 1);
+                        DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
+                        item.text = dt.ToString("MM.dd\nHH:mm");
+                    }
+                });
+            }
+            else
+            {
+                // 일간모드 또는 데이터가 없는 경우: 기존 로직
+                lblHourList.ForEach(item =>
                 {
-                    item.text = dt.ToString("MM.dd");
-                }
-            });
+                    int labelIndex = lblHourList.IndexOf(item);
+                    float ratio = (float)labelIndex / (lblHourList.Count - 1);
+                    DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
+                    TimeSpan timeSpan = datetime.to - datetime.from;
+
+                    if (timeSpan.TotalDays < 4f)
+                    {
+                        if (item == lblHourList.Last() || item == lblHourList.First())
+                        {
+                            item.text = $"\n{dt:dd}일{dt:HH:mm}";
+                        }
+                        else
+                        {
+                            item.text = $"\n{dt:HH:mm}";
+                        }
+                    }
+                    else
+                    {
+                        item.text = dt.ToString("MM.dd");
+                    }
+                });
+            }
         }
+
+
 
         void UpdateTrendLine()
         {
