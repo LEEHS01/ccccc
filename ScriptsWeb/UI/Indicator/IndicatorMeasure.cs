@@ -72,9 +72,10 @@ namespace Onthesys.WebBuild
             lblCoverTime = pnlCoverDelayedDate.transform.Find("txtTime").GetComponent<TMP_Text>();
             lblCoverTitle = pnlCoverDelayedDate.transform.Find("txtTitle").GetComponent<TMP_Text>();
             lblCoverName = pnlCoverDelayedDate.transform.Find("txtSensorName").GetComponent<TMP_Text>();
+
             //maintenancePanel.SetActive(false);
 
-            GetComponentInParent<Button>().onClick.AddListener(() =>
+            GetComponent<Button>().onClick.AddListener(() =>
             {
                 UiManager.Instance.Invoke(UiEventType.SelectSensorWithinTab, sensorId);
             });
