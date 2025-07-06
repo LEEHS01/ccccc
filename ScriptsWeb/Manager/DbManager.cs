@@ -169,7 +169,15 @@ namespace Onthesys.WebBuild
 
                 //Debug.Log("GetSensorDataFunc : " + result);
                 var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
+                if (wrapper.items.Count > 0)
+                {
+                    var sample = wrapper.items[0];
+                    Debug.Log($"[TIMEZONE_DEBUG] 파싱된 measured_time 문자열: '{sample.measured_time}'");
+                    Debug.Log($"[TIMEZONE_DEBUG] MeasuredTime 프로퍼티 결과: {sample.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
+                    Debug.Log($"[TIMEZONE_DEBUG] 현재 KST 시간: {DateTimeKst.Now:yyyy-MM-dd HH:mm:ss}");
+                }
                 callback(wrapper.items);
+
                 //foreach (var item in wrapper.items)
                 //{
                 //    Debug.Log($"[{item.board_id} - {item.sensor_id}][{item.measured_time.ToString()}] : {item.measured_value}");
