@@ -169,37 +169,13 @@ namespace Onthesys.WebBuild
 
                 //Debug.Log("GetSensorDataFunc : " + result);
                 var wrapper = JsonUtility.FromJson<MeasureModelList>(result);
-
                 if (wrapper.items.Count > 0)
                 {
                     var sample = wrapper.items[0];
                     Debug.Log($"[TIMEZONE_DEBUG] 파싱된 measured_time 문자열: '{sample.measured_time}'");
                     Debug.Log($"[TIMEZONE_DEBUG] MeasuredTime 프로퍼티 결과: {sample.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
                     Debug.Log($"[TIMEZONE_DEBUG] 현재 KST 시간: {DateTimeKst.Now:yyyy-MM-dd HH:mm:ss}");
-
-                    // 주간모드일 때 첫번째와 마지막 데이터 시간 확인
-                    if (isWeek)
-                    {
-                        var firstData = wrapper.items.First();
-                        var lastData = wrapper.items.Last();
-                        Debug.Log($"[주간모드] 첫번째 데이터 시간: {firstData.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[주간모드] 마지막 데이터 시간: {lastData.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[주간모드] 현재 시간: {DateTimeKst.Now:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[주간모드] 요청한 종료시간: {toDt:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[주간모드] 총 데이터 개수: {wrapper.items.Count}");
-                    }
-                    else
-                    {
-                        var firstData = wrapper.items.First();
-                        var lastData = wrapper.items.Last();
-                        Debug.Log($"[일간모드] 첫번째 데이터 시간: {firstData.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[일간모드] 마지막 데이터 시간: {lastData.MeasuredTime:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[일간모드] 현재 시간: {DateTimeKst.Now:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[일간모드] 요청한 종료시간: {toDt:yyyy-MM-dd HH:mm:ss}");
-                        Debug.Log($"[일간모드] 총 데이터 개수: {wrapper.items.Count}");
-                    }
                 }
-
                 callback(wrapper.items);
 
                 //foreach (var item in wrapper.items)

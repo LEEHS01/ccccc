@@ -297,36 +297,32 @@ namespace Onthesys.WebBuild
                     }
                 });
             }
+            else
             {
-                // 일간모드도 실제 데이터 시간 기준으로 변경
-                if (sensorLogs.Count > 0)
+                // 일간모드 또는 데이터가 없는 경우: 기존 로직
+                lblHourList.ForEach(item =>
                 {
-                    lblHourList.ForEach(item =>
+                    int labelIndex = lblHourList.IndexOf(item);
+                    float ratio = (float)labelIndex / (lblHourList.Count - 1);
+                    DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
+                    TimeSpan timeSpan = datetime.to - datetime.from;
+
+                    if (timeSpan.TotalDays < 4f)
                     {
-                        int labelIndex = lblHourList.IndexOf(item);
-                        int dataIndex = Mathf.RoundToInt((float)labelIndex / (lblHourList.Count - 1) * (sensorLogs.Count - 1));
-                        dataIndex = Mathf.Clamp(dataIndex, 0, sensorLogs.Count - 1);
-
-                        DateTime actualTime = sensorLogs[dataIndex].MeasuredTime; // 실제 데이터 시간 사용
-                        TimeSpan timeSpan = datetime.to - datetime.from;
-
-                        if (timeSpan.TotalDays < 4f)
+                        if (item == lblHourList.Last() || item == lblHourList.First())
                         {
-                            if (item == lblHourList.Last() || item == lblHourList.First())
-                            {
-                                item.text = $"\n{actualTime:dd}일{actualTime:HH:mm}";
-                            }
-                            else
-                            {
-                                item.text = $"\n{actualTime:HH:mm}";
-                            }
+                            item.text = $"\n{dt:dd}일{dt:HH:mm}";
                         }
                         else
                         {
-                            item.text = actualTime.ToString("MM.dd");
+                            item.text = $"\n{dt:HH:mm}";
                         }
-                    });
-                }
+                    }
+                    else
+                    {
+                        item.text = dt.ToString("MM.dd");
+                    }
+                });
             }
         }
 
