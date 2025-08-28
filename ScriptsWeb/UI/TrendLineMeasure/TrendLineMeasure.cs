@@ -269,12 +269,11 @@ namespace Onthesys.WebBuild
         void UpdateTimeLabels()
         {
             if (lblHourList == null) return;
-
             bool isWeek = weeklyGrid.activeSelf;
 
-            if (isWeek && sensorLogs.Count > 0)
+            // 실제 데이터가 있을 때만 시간 라벨 표시
+            if (sensorLogs.Count > 0)
             {
-                // 주간모드: 실제 데이터의 시간을 기준으로 라벨 생성
                 lblHourList.ForEach(item =>
                 {
                     int labelIndex = lblHourList.IndexOf(item);
@@ -286,41 +285,18 @@ namespace Onthesys.WebBuild
                     if (dataIndex < sensorLogs.Count)
                     {
                         DateTime actualTime = sensorLogs[dataIndex].MeasuredTime;
-                        item.text = actualTime.ToString("MM.dd\nHH:mm");
-                    }
-                    else
-                    {
-                        // Fallback: 비율로 계산
-                        float ratio = (float)labelIndex / (lblHourList.Count - 1);
-                        DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
-                        item.text = dt.ToString("MM.dd\nHH:mm");
-                    }
-                });
-            }
-            else
-            {
-                // 일간모드 또는 데이터가 없는 경우: 기존 로직
-                lblHourList.ForEach(item =>
-                {
-                    int labelIndex = lblHourList.IndexOf(item);
-                    float ratio = (float)labelIndex / (lblHourList.Count - 1);
-                    DateTime dt = datetime.from + (datetime.to - datetime.from) * ratio;
-                    TimeSpan timeSpan = datetime.to - datetime.from;
 
-                    if (timeSpan.TotalDays < 4f)
-                    {
-                        if (item == lblHourList.Last() || item == lblHourList.First())
-                        {
-                            item.text = $"\n{dt:dd}일{dt:HH:mm}";
-                        }
-                        else
-                        {
-                            item.text = $"\n{dt:HH:mm}";
-                        }
-                    }
-                    else
-                    {
-                        item.text = dt.ToString("MM.dd");
+                        // 정시로 변환 (분, 초를 00으로)
+                        DateTime roundedTime = new DateTime(
+                            actualTime.Year,
+                            actualTime.Month,
+                            actualTime.Day,
+                            actualTime.Hour,
+                            0, 0  // 분, 초를 00으로
+                        );
+
+                        // 주간/일간 모두 동일한 형식
+                        item.text = roundedTime.ToString("MM.dd\nHH:mm");
                     }
                 });
             }
