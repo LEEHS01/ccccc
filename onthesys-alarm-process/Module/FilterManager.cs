@@ -10,9 +10,6 @@ using System.Threading.Tasks;
 
 namespace onthesys_alarm_process.Process
 {
-
-
-
     public class FilterManager : Manager
     {
         //const int winSize = 11;

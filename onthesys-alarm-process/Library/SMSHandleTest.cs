@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace onthesys_alarm_process.Library
 {
+    [Obsolete ("사용하지 않는 테스트용 객체")]
     internal class SMSHandleTest : ISmsHandle
     {
         static Random random = new Random();

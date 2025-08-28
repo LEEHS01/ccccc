@@ -36,7 +36,7 @@ namespace onthesys_alarm_process.Process
         internal SmsManager(Application app, ISmsHandle smsHandle) : base(app)
         {
             this.smsHandle = smsHandle;
-            interval = 10*60*1000;
+            interval = 60*60*1000;
         }
         protected override Task Process()
         {
@@ -112,7 +112,10 @@ namespace onthesys_alarm_process.Process
 
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
 
-            string groupMessage = $"[GyeRyong WQ]\nSensor : {sensor.sensor_name} INCREASE\nStatus : {from} -> {to}\nTime : {alarm.OccuredTime:HH:mm:ss}\nThreshold : {threshold}{sensor.unit}";
+            string fromKorean = StatusToKoreanText(from),
+                   toKorean = StatusToKoreanText(to),
+                   sensorKorean = SensorToKoreanText(sensor.sensor_id);
+            string groupMessage = $"[계룡 수질]\n센서명 : {sensorKorean}\n상태 상승 : {fromKorean} -> {toKorean}\n해소 시각 : {alarm.OccuredTime:tt hh:mm}\n임계값 : {threshold:F1} {sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();
@@ -139,15 +142,16 @@ namespace onthesys_alarm_process.Process
             //전화번호 추출
             List<string> phoneNumbers = tServices.Select(s => s.phone).ToList();
 
+
+            string fromKorean = StatusToKoreanText(from),
+                   toKorean = StatusToKoreanText(to),
+                   sensorKorean = SensorToKoreanText(sensor.sensor_id);
             float threshold = sensor.GetThresholdByStatus(alarm.GetAlarmLevel());
-            string groupMessage = $"[GyeRyong WQ]\nSensor : {sensor.sensor_name} DECREASE\nStatus : {from} -> {to}\nTime : {alarm.SolvedTime():HH:mm:ss}\nThreshold : {threshold}{sensor.unit}";
+            string groupMessage = $"[계룡 수질]\n센서명 : {sensorKorean}\n상태 하강 : {fromKorean} -> {toKorean}\n해소 시각 : {alarm.SolvedTime():tt hh:mm}\n임계값 : {threshold:F1} {sensor.unit}";
 
             smsHandle.SendSMSToList(phoneNumbers, groupMessage);
             OnSmsSended?.Invoke();
         }
-
-
-
 
         bool IsValidPhoneNumber(string phone)
         {
@@ -159,6 +163,31 @@ namespace onthesys_alarm_process.Process
             
             return false;
         }
+
+        string StatusToKoreanText(StatusType status)
+        {
+            switch (status)
+            {
+                case StatusType.ERROR: return "오류";
+                case StatusType.NORMAL: return "정상";
+                case StatusType.SERIOUS: return "경계";
+                case StatusType.WARNING: return "경보";
+                case StatusType.CRITICAL: return "치명";
+                default: throw new Exception("StatusToKoreanText - 예상 범위 밖의 인자가 제시됐습니다. StatusType 자료형을 한국어로 변환하는데에 실패했습니다.");
+            }
+        }
+        string SensorToKoreanText(int sensorId)
+        {
+            switch (sensorId)
+            {
+                case 1: return "부유물";
+                case 2: return "BOD";
+                case 3: return "탁도";
+                default: throw new Exception("StatusToKoreanText - 예상 범위 밖의 인자가 제시됐습니다. StatusType 자료형을 한국어로 변환하는데에 실패했습니다.");
+            }
+
+        }
+
 
         #endregion
 

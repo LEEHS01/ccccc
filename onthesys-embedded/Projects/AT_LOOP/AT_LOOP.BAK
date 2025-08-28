@@ -1,0 +1,48 @@
+#include "..\LIB\7186e.h"
+#include <string.h>
+
+// 버퍼 최대 크기 정의
+#define BUF_SIZE 256
+
+void InitSystem(void)
+{
+    InitLib();  // 필수: 라이브러리 초기화
+    InstallCom1(115200, 8, 0, 1);  // 8N1, 115200bps
+    SetCom1Timeout(50);            // 50ms 타임아웃
+}
+
+void SendATCommand(void)
+{
+    ToCom1Str("AT\r");  // CR 포함하여 명령 전송
+}
+
+void ReadATResponse(void)
+{
+    char buffer[BUF_SIZE];
+    int len = 0;
+
+    Delay(100);  // 잠시 대기하여 수신 데이터가 쌓이도록
+
+    while (DataSizeInCom1() > 0 && len < BUF_SIZE - 1)
+    {
+        buffer[len++] = ReadCom1();
+    }
+
+    if (len > 0)
+    {
+        buffer[len] = '\0';  // null-terminate
+        Print("Response: %s\n", buffer);
+    }
+}
+
+void main(void)
+{
+    InitSystem();
+
+    while (1)
+    {
+        SendATCommand();
+        ReadATResponse();
+        Delay(1000);  // 1초 주기
+    }
+}

@@ -147,6 +147,7 @@ namespace onthesys_alarm_process.Process
                         //Logger.WriteLineAndLog("Result: " + t.Result);
                         var wrapper = JsonConvert.DeserializeObject<AlarmLogModelList>(t.Result);
                         var result = wrapper.items;
+                        result.ForEach(alarm => alarm.occured_time = alarm.OccuredTime.AddHours(-9).ToString("yyyy-MM-dd HH:mm:ss"));
                         OnAlarmDownloaded?.Invoke(result);
                     }
                 });
