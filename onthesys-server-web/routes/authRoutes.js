@@ -4,6 +4,7 @@ const router = express.Router();
 
 router.use(express.json());
 router.post('/certification', authController.certification);
-router.post('/validation', authController.validation)
+router.post('/validation', authController.validation);
+router.post('/changePassword', authController.changePassword);  // 추가
 
 module.exports = router

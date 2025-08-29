@@ -14,7 +14,7 @@ public class PageSmsManage : MonoBehaviour
     Transform itemContainer;
     List<ItemSmsManage> smsItems => itemContainer.GetComponentsInChildren<ItemSmsManage>().ToList();
 
-    Button btnUnregister, btnRegister, btnThresholdsetting;
+    Button btnUnregister, btnRegister, btnThresholdsetting, btnPasswordsetting;
 
     void Start() 
     {
@@ -26,6 +26,9 @@ public class PageSmsManage : MonoBehaviour
 
         btnThresholdsetting = transform.Find("List").Find("btnThreshold").GetComponent<Button>();
         btnThresholdsetting.onClick.AddListener(OnClickThreshold);
+
+        btnPasswordsetting = transform.Find("List").Find("btnPassword").GetComponent<Button>();
+        btnPasswordsetting.onClick.AddListener(OnClickPasswordChange);
 
         itemContainer = transform.Find("List").Find("Scroll View").Find("Viewport").Find("SmsServicePanel");
 
@@ -72,5 +75,11 @@ public class PageSmsManage : MonoBehaviour
     public void OnClickUnregister() => UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsUnregister));
     public void OnClickRegister() => UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsRegister));
     public void OnClickThreshold() => UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageThreshold));
+
+    private void OnClickPasswordChange()
+    {
+        Debug.Log("비밀번호 변경 버튼 클릭");
+        UiManager.Instance.Invoke(UiEventType.NavigateSms, typeof(PageSmsPasswordChange));
+    }
 
 }

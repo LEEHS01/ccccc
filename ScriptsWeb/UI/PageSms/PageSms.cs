@@ -22,6 +22,7 @@ public class PageSms : MonoBehaviour
         pages.Add(typeof(PageSmsUnregister), transform.Find("Panels").GetComponentInChildren<PageSmsUnregister>().gameObject);
         pages.Add(typeof(PageSmsUpdate), transform.Find("Panels").GetComponentInChildren<PageSmsUpdate>().gameObject);
         pages.Add(typeof(PageThreshold), transform.Find("Panels").GetComponentInChildren<PageThreshold>().gameObject);  //0609 수정
+        pages.Add(typeof(PageSmsPasswordChange), transform.Find("Panels").GetComponentInChildren<PageSmsPasswordChange>().gameObject);
     }
 
     private void Start()

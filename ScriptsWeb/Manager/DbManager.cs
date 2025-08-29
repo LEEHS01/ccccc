@@ -138,6 +138,15 @@ namespace Onthesys.WebBuild
         internal void UpdateSensorThresholds(List<SensorModel> sensors, Action<bool, string> callback)
             => StartCoroutine(UpdateSensorThresholdsFunc(sensors, callback));
 
+        /// <summary>
+        /// 비빌번호 수정하는 함수
+        /// </summary>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <param name="authCode"></param>
+        /// <param name="callback"></param>
+        public void ChangePassword(string oldPassword, string newPassword, string authCode, Action<(bool, string)> callback)
+    => StartCoroutine(ChangePasswordFunc(oldPassword, newPassword, authCode, callback));
         #endregion
 
         #region [DB 요청 및 처리문]
@@ -401,6 +410,24 @@ namespace Onthesys.WebBuild
 
             callback(true, "임계값이 성공적으로 저장되었습니다.");
             //난 모르겠다
+        }
+
+        IEnumerator ChangePasswordFunc(string oldPassword, string newPassword, string authCode, Action<(bool, string)> callback)
+        {
+            string jsonData = $@"{{
+        ""oldPassword"": ""{oldPassword}"",
+        ""newPassword"": ""{newPassword}"",
+        ""authCode"": ""{authCode}""
+    }}";
+
+            Debug.Log("보내는 JSON: " + jsonData);  // 확인용
+
+            yield return ResponseAPI("/auth/changePassword", jsonData, result =>
+            {
+                Debug.Log("ChangePassword Response: " + result);
+                var response = JsonUtility.FromJson<AuthTokenModel>(result);
+                callback((response.is_succeed, response.message));
+            });
         }
 
         #endregion

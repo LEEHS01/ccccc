@@ -17,4 +17,4 @@ exports.dbConfig = {
     }
 };
 
-exports.managerPassword = 'admin'
+exports.managerPassword = 'admin123!'
