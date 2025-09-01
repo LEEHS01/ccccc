@@ -414,7 +414,8 @@ namespace Onthesys.WebBuild
         public void GetValidation(string authCode, Action<AuthTokenModel> callback)
         => StartCoroutine(GetValidationFunc(authCode, callback));
 
-
+        public void ChangePassword(string currentPassword, string newPassword, Action<AuthTokenModel> callback)
+        => StartCoroutine(ChangePasswordFunc(currentPassword, newPassword, callback));
 
         #endregion
 
@@ -437,6 +438,36 @@ namespace Onthesys.WebBuild
                 var item = JsonUtility.FromJson<AuthTokenModel>(result);
                 callback(item);
             });
+        }
+
+        IEnumerator ChangePasswordFunc(string currentPassword, string newPassword, Action<AuthTokenModel> callback)
+        {
+            var data = new PasswordChangePayload
+            {
+                currentPassword = currentPassword,
+                newPassword = newPassword
+            };
+
+            var json = JsonUtility.ToJson(data);
+            byte[] jsonToSend = new UTF8Encoding().GetBytes(json);
+
+            UnityWebRequest request = new UnityWebRequest(Option.URL + "/auth/change-password", "POST");
+            request.uploadHandler = new UploadHandlerRaw(jsonToSend);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("Password change response: " + request.downloadHandler.text);
+                var result = JsonUtility.FromJson<AuthTokenModel>(request.downloadHandler.text);
+                callback(result);
+            }
+            else
+            {
+                callback(new AuthTokenModel { is_succeed = false, message = "네트워크 오류" });
+            }
         }
 
         #endregion

@@ -130,23 +130,7 @@ namespace Onthesys.WebBuild
             {
                 lblUnit.text = sensorData.unit;
             }
-            // 같은 센서 타입의 모든 인디케이터에 동일한 편차 적용
-            var allIndicators = GameObject.FindObjectsByType<IndicatorMeasure>(FindObjectsSortMode.None)
-        .Where(ind => ind.sensorId == this.sensorId);
-
-            var upstreamValue = modelProvider.GetMeasureRecentBySensor(1, sensorId)?.measured_value ?? 0f;
-            var downstreamValue = modelProvider.GetMeasureRecentBySensor(2, sensorId)?.measured_value ?? 0f;
-            float deviation = Math.Abs(upstreamValue - downstreamValue);
-
-            // 모든 같은 센서 타입 인디케이터에 동일한 편차 표시
-            foreach (var indicator in allIndicators)
-            {
-                var statusDisplay = indicator.GetComponent<IndicatorStatusDisplay>();
-                if (statusDisplay != null)
-                {
-                    statusDisplay.UpdateDeviation(deviation);
-                }
-            }
+            
             //0610 수정       
 
             TimeSpan delayment = DateTimeKst.Now - GetMaintenanceStartTime();

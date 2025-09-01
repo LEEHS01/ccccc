@@ -125,7 +125,9 @@ namespace Onthesys.WebBuild
         //SMS 서비스 관련
         RequestVerification,
         ResponseVerification,
-        RequestThresholdUpdate,     //추가
+        RequestThresholdUpdate,     //임계값 설정
+        RequestPasswordChange,      //비밀번호 변경
+        ResponsePasswordChange,     //비밀번호 변경
 
         ChangeSmsServiceList,
 

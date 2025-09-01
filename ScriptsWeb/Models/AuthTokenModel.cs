@@ -10,4 +10,9 @@ namespace Onthesys.WebBuild
         public string auth_code;
     }
 
+    public class PasswordChangePayload
+    {
+        public string currentPassword;
+        public string newPassword;
+    }
 }
