@@ -215,7 +215,7 @@ public class RealtimeStatusAlarmBorderVisualizer : MonoBehaviour
         borderImage.pixelsPerUnitMultiplier = 1f;
 
         // Z-Order: 알람 레벨에 따라 우선순위 조정
-        borderObject.transform.SetAsLastSibling(); // 가장 앞에 표시
+        borderImage.raycastTarget = false;
         borderObject.SetActive(false);
 
         originalScale = borderRectTransform.localScale;

@@ -135,9 +135,6 @@ namespace Onthesys.WebBuild
         RequestSmsUnregister,
         ResponseSmsUpdate,
         RequestSmsUpdate,
-        RequestPasswordChange,      // 비밀번호 변경 요청
-        ResponsePasswordChange,     // 비밀번호 변경 응답
-
 
         //임계값 관련
         ResponseThresholdUpdate,

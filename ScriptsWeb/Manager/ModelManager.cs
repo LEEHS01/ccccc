@@ -93,7 +93,6 @@ namespace Onthesys.WebBuild
             uiManager.Register(UiEventType.RequestSmsUpdate, OnRequestSmsUpdate);
             uiManager.Register(UiEventType.RequestSmsRegister, OnRequestSmsRegister);
             uiManager.Register(UiEventType.RequestSmsUnregister, OnRequestSmsUnregister);
-            uiManager.Register(UiEventType.RequestPasswordChange, OnRequestPasswordChange);
             AwaitInitiating();
         }
 
@@ -311,19 +310,6 @@ namespace Onthesys.WebBuild
                 uiManager.Invoke(UiEventType.ChangeSensorData);
              });
          }
-
-        //비밀번호 수정 
-        private void OnRequestPasswordChange(object obj)
-        {
-            if (obj is not (string currentPassword, string newPassword)) return;
-
-            Debug.Log($"ModelManager - 현재: {currentPassword}, 새: {newPassword}, 토큰: {verificatedCode}");
-
-            dbManager.ChangePassword(currentPassword, newPassword, verificatedCode, result =>
-            {
-                UiManager.Instance.Invoke(UiEventType.ResponsePasswordChange, result);
-            });
-        }
         #endregion [EventListener]
 
         #region [Process]
