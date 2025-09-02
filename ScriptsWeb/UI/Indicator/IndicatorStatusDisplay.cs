@@ -122,7 +122,7 @@ public class IndicatorStatusDisplay : MonoBehaviour
 
         if (deviationText != null)
         {
-            deviationText.text = "차이:";
+            deviationText.text = "하류-상류 차이:";
             deviationText.color = yellowColor;
         }
         if (deviationValueText != null)
@@ -152,7 +152,7 @@ public class IndicatorStatusDisplay : MonoBehaviour
 
         if (deviationText != null)
         {
-            deviationText.text = "차이:";
+            deviationText.text = "하류-상류 차이:";
             deviationText.color = redColor;
         }
         if (deviationValueText != null)

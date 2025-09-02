@@ -138,8 +138,9 @@ public class RealtimeStatusAlarmBorderVisualizer : MonoBehaviour
             // 서버에서 전달받은 알람 로그에서 현재 센서의 알람 상태 확인
             var alarmLogs = UiManager.Instance.modelProvider.GetAlarmLogList();
             var latestAlarm = alarmLogs
-                .Where(log => log.sensor_id == sensorId && string.IsNullOrEmpty(log.solved_time)) // 해결되지 않은 알람
-                .OrderByDescending(log => log.occured_time)
+                .Where(log => log.sensor_id == sensorId && string.IsNullOrEmpty(log.solved_time))
+                .OrderBy(log => log.alarm_level == "Warning" ? 0 : 1)  // Warning(경보) 우선
+                .ThenByDescending(log => log.occured_time)
                 .FirstOrDefault();
 
             AlarmLevel newLevel = AlarmLevel.Normal;
@@ -149,8 +150,8 @@ public class RealtimeStatusAlarmBorderVisualizer : MonoBehaviour
                 // 서버에서 전달받은 알람 레벨 사용
                 newLevel = latestAlarm.alarm_level switch
                 {
-                    "Warning" => AlarmLevel.Warning,    // 대소문자 수정
-                    "Serious" => AlarmLevel.Alert,  // 대소문자 수정
+                    "Warning" => AlarmLevel.Alert,    // 대소문자 수정
+                    "Serious" => AlarmLevel.Warning,  // 대소문자 수정
                     _ => AlarmLevel.Normal
                 };
             }

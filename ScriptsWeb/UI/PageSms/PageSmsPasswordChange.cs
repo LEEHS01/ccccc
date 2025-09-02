@@ -116,7 +116,7 @@ public class PageSmsPasswordChange : MonoBehaviour
         if (string.IsNullOrWhiteSpace(txbCurrentPassword.text))
         {
             UiManager.Instance.Invoke(UiEventType.PopupError,
-                ("입력 오류", "현재 비밀번호를 입력해주세요."));
+                ("입력 오류", "기존 비밀번호를 입력해주세요."));
             return false;
         }
 
